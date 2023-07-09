@@ -31,10 +31,10 @@ public class InMemoryUserRepository implements UserRepository {
     public User updatePartial(User user) {
         if (isEmailUnique(user)) {
             User oldUser = users.get(user.getId());
-            if (user.getName() == null) {
+            if (user.getName().equals(null)) {
                 user = user.withName(oldUser.getName());
             }
-            if (user.getEmail() == null) {
+            if (user.getEmail().equals(null)) {
                 user = user.withEmail(oldUser.getEmail());
             }
             users.put(user.getId(), user);

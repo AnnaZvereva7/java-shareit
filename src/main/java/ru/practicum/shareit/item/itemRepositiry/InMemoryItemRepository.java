@@ -31,13 +31,13 @@ public class InMemoryItemRepository implements ItemRepository {
     @Override
     public Item updatePartial(Item item, int id) {
         Item itemForUpdate = items.get(id);
-        if (item.getName() != null) {
+        if (!item.getName().equals(null)) {
             itemForUpdate = itemForUpdate.withName(item.getName());
         }
-        if (item.getDescription() != null) {
+        if (!item.getDescription().equals(null)) {
             itemForUpdate = itemForUpdate.withDescription(item.getDescription());
         }
-        if (item.getAvailable() != null) {
+        if (!item.getAvailable().equals(null)) {
             itemForUpdate.setAvailable(item.getAvailable());
         }
         items.put(id, itemForUpdate);
