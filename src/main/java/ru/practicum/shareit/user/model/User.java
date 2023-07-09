@@ -1,29 +1,25 @@
-package ru.practicum.shareit.item.model;
+package ru.practicum.shareit.user.model;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.With;
 import org.springframework.validation.annotation.Validated;
 import ru.practicum.shareit.exception.Marker;
 
+import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
-@Validated
 @Data
-@AllArgsConstructor
-public class Item {
-    private int id;
+@Validated
+public class User {
+    @NotNull(groups = Marker.OnUpdate.class)
+    @With
+    private final int id;
     @NotBlank(groups = Marker.OnCreate.class)
     @With
     private final String name;
-    @NotBlank(groups = Marker.OnCreate.class)
-    @With
-    private final String description;
     @NotNull(groups = Marker.OnCreate.class)
-    private Boolean available;
+    @Email
     @With
-    private final int ownerId;
-    private Integer requestId;
-
+    private final String email; //уникальный адрес
 }
