@@ -32,7 +32,8 @@ public class UserController {
     @PatchMapping("/{userId}")
     @Validated({Marker.OnUpdate.class})
     public User updatePartial(@PathVariable int userId, @RequestBody @Valid User user) {
-        return userService.updatePartial(user.withId(userId));
+        user.setId(userId);
+        return userService.updatePartial(user);
     }
 
     @DeleteMapping("/{userId}")

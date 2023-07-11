@@ -1,7 +1,7 @@
 package ru.practicum.shareit.user.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.With;
 import org.springframework.validation.annotation.Validated;
 import ru.practicum.shareit.exception.Marker;
 
@@ -11,15 +11,13 @@ import javax.validation.constraints.NotNull;
 
 @Data
 @Validated
+@AllArgsConstructor
 public class User {
     @NotNull(groups = Marker.OnUpdate.class)
-    @With
-    private final int id;
+    private int id;
     @NotBlank(groups = Marker.OnCreate.class)
-    @With
-    private final String name;
+    private String name;
     @NotNull(groups = Marker.OnCreate.class)
     @Email
-    @With
-    private final String email; //уникальный адрес
+    private String email; //уникальный адрес
 }

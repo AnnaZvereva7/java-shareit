@@ -19,7 +19,7 @@ public class InMemoryUserRepository implements UserRepository {
     public User save(User user) {
         if (isEmailUnique(user)) {
             lastId += 1;
-            user = user.withId(lastId);
+            user.setId(lastId);
             users.put(lastId, user);
             return users.get(lastId);
         } else {
@@ -32,10 +32,10 @@ public class InMemoryUserRepository implements UserRepository {
         if (isEmailUnique(user)) {
             User oldUser = users.get(user.getId());
             if (user.getName().equals(null)) {
-                user = user.withName(oldUser.getName());
+                user.setName(oldUser.getName());
             }
             if (user.getEmail().equals(null)) {
-                user = user.withEmail(oldUser.getEmail());
+                user.setEmail(oldUser.getEmail());
             }
             users.put(user.getId(), user);
             return users.get(user.getId());

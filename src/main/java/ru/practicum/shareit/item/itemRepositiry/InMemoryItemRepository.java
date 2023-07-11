@@ -32,10 +32,10 @@ public class InMemoryItemRepository implements ItemRepository {
     public Item updatePartial(Item item, int id) {
         Item itemForUpdate = items.get(id);
         if (!item.getName().equals(null)) {
-            itemForUpdate = itemForUpdate.withName(item.getName());
+            itemForUpdate.setName(item.getName());
         }
         if (!item.getDescription().equals(null)) {
-            itemForUpdate = itemForUpdate.withDescription(item.getDescription());
+            itemForUpdate.setDescription(item.getDescription());
         }
         if (!item.getAvailable().equals(null)) {
             itemForUpdate.setAvailable(item.getAvailable());

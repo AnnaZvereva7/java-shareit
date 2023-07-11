@@ -33,7 +33,8 @@ public class ItemController {
     @PostMapping
     @Validated(Marker.OnCreate.class)
     public Item save(@RequestBody @Valid Item item, @RequestHeader("X-Sharer-User-Id") int userId) {
-        return itemService.save(item.withOwnerId(userId));
+        item.setOwnerId(userId);
+        return itemService.save(item);
     }
 
     @PatchMapping("/{itemId}")
