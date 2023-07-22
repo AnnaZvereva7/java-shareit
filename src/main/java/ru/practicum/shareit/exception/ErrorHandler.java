@@ -53,6 +53,7 @@ public class ErrorHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Map<String, String> otherException(Exception e) {
         log.debug("Получен статус 500 Internal server error {}", e.getMessage(), e);
+        e.printStackTrace();
         return Map.of("error", e.getMessage());
     }
 }

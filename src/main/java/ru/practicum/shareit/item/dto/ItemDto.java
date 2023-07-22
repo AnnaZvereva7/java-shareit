@@ -1,15 +1,11 @@
 package ru.practicum.shareit.item.dto;
 
+import lombok.Data;
+
+@Data
 public class ItemDto {
-    private int id;
-    private String name;
-    private String description;
-    private boolean isAvailable;
-
-    public ItemDto(int id, String name, String description, boolean isAvailable) {
-        this.name = name;
-        this.description = description;
-        this.isAvailable = isAvailable;
-    }
-
+    private final int id;
+    private final String name;
+    private final String description;
+    private final boolean isAvailable;
 }

@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item;
 
+import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.exception.Marker;
@@ -11,7 +12,8 @@ import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("/items")
+@RequestMapping(value = "/items",
+        produces = MediaType.APPLICATION_JSON_VALUE)
 @Validated
 public class ItemController {
     private final ItemService itemService;

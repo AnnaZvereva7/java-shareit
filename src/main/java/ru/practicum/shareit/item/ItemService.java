@@ -3,6 +3,7 @@ package ru.practicum.shareit.item;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.LimitAccessException;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.itemRepositiry.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.userRepository.UserRepository;
@@ -13,10 +14,12 @@ import java.util.List;
 public class ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final ItemMapper itemMapper;
 
-    public ItemService(ItemRepository itemRepository, UserRepository userRepository) {
+    public ItemService(ItemRepository itemRepository, UserRepository userRepository, ItemMapper itemMapper) {
         this.itemRepository = itemRepository;
         this.userRepository = userRepository;
+        this.itemMapper = itemMapper;
     }
 
     public Item save(Item item) {
@@ -37,15 +40,15 @@ public class ItemService {
     }
 
     public ItemDto findById(int id) {
-        return itemRepository.findById(id);
+        return itemMapper.toItemDto(itemRepository.findById(id));
     }
 
     public List<ItemDto> findAllByUser(int userId) {
         userRepository.containId(userId);
-        return itemRepository.findAllByUser(userId);
+        return itemMapper.toItemListDto(itemRepository.findAllByUser(userId));
     }
 
     public List<ItemDto> findByText(String text) {
-        return itemRepository.findByText(text);
+        return itemMapper.toItemListDto(itemRepository.findByText(text));
     }
 }

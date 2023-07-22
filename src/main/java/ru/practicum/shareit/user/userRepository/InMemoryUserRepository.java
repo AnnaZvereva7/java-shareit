@@ -29,19 +29,19 @@ public class InMemoryUserRepository implements UserRepository {
 
     @Override
     public User updatePartial(User user) {
-        if (isEmailUnique(user)) {
-            User oldUser = users.get(user.getId());
-            if (user.getName().equals(null)) {
-                user.setName(oldUser.getName());
-            }
-            if (user.getEmail().equals(null)) {
-                user.setEmail(oldUser.getEmail());
-            }
-            users.put(user.getId(), user);
-            return users.get(user.getId());
-        } else {
-            throw new NotUniqueEmailException();
+        User oldUser = users.get(user.getId());
+        if (user.getName() != null) {
+            oldUser.setName(user.getName());
         }
+        if (user.getEmail() != null) {
+            if (isEmailUnique(user)) {
+                oldUser.setEmail(user.getEmail());
+            } else {
+                throw new NotUniqueEmailException();
+            }
+        }
+        users.put(user.getId(), oldUser);
+        return users.get(user.getId());
     }
 
     @Override
