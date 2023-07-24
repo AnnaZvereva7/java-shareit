@@ -3,37 +3,42 @@ package ru.practicum.shareit.user;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.exception.Marker;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.dto.UserMapper;
 
 import javax.validation.Valid;
 import java.util.List;
+
+import static java.util.stream.Collectors.toList;
 
 @RestController
 @Validated
 @RequestMapping(path = "/users")
 public class UserController {
+    private final UserMapper mapper;
     private final UserService userService;
 
-    public UserController(UserService userService) {
+    public UserController(UserMapper mapper, UserService userService) {
+        this.mapper = mapper;
         this.userService = userService;
     }
 
     @GetMapping("/{userId}")
-    public User findById(@PathVariable int userId) {
-        return userService.findById(userId);
+    public UserDto findById(@PathVariable int userId) {
+        return mapper.toUserDto(userService.findById(userId));
     }
 
     @PostMapping
     @Validated({Marker.OnCreate.class})
-    public User save(@RequestBody @Valid User user) {
-        return userService.save(user);
+    public UserDto save(@RequestBody @Valid UserDto userDto) {
+        return mapper.toUserDto(userService.save(mapper.fromUserDto(userDto)));
     }
 
     @PatchMapping("/{userId}")
     @Validated({Marker.OnUpdate.class})
-    public User updatePartial(@PathVariable int userId, @RequestBody @Valid User user) {
-        user.setId(userId);
-        return userService.updatePartial(user);
+    public UserDto updatePartial(@PathVariable int userId, @RequestBody @Valid UserDto userDto) {
+        userDto.setId(userId);
+        return mapper.toUserDto(userService.updatePartial(mapper.fromUserDto(userDto)));
     }
 
     @DeleteMapping("/{userId}")
@@ -42,8 +47,11 @@ public class UserController {
     }
 
     @GetMapping
-    public List<User> findAll() {
-        return userService.findAll();
+    public List<UserDto> findAll() {
+        return userService.findAll()
+                .stream()
+                .map(mapper::toUserDto)
+                .collect(toList());
     }
 
 }
