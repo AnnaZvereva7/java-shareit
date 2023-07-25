@@ -1,4 +1,4 @@
-package ru.practicum.shareit.item;
+package ru.practicum.shareit.item.service;
 
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.LimitAccessException;
@@ -10,11 +10,11 @@ import ru.practicum.shareit.user.userRepository.UserRepository;
 import java.util.List;
 
 @Service
-public class ItemService {
+public class ItemServiceImp implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
 
-    public ItemService(ItemRepository itemRepository, UserRepository userRepository, ItemMapper itemMapper) {
+    public ItemServiceImp(ItemRepository itemRepository, UserRepository userRepository, ItemMapper itemMapper) {
         this.itemRepository = itemRepository;
         this.userRepository = userRepository;
     }

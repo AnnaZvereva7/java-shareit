@@ -1,4 +1,4 @@
-package ru.practicum.shareit.user;
+package ru.practicum.shareit.user.service;
 
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.user.model.User;
@@ -7,10 +7,10 @@ import ru.practicum.shareit.user.userRepository.UserRepository;
 import java.util.List;
 
 @Component
-public class UserService {
+public class UserServiceImp implements UserService {
     private final UserRepository userRepository;
 
-    public UserService(UserRepository userRepository) {
+    public UserServiceImp(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
