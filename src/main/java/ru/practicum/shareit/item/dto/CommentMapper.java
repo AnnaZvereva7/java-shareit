@@ -29,7 +29,7 @@ public class CommentMapper {
         return new Comment(null,
                 commentDto.getText(),
                 itemService.findById(itemId),
-                userService.findById(commentDto.getAuthor_id()),
+                userService.findById(commentDto.getAuthorId()),
                 LocalDateTime.now());
     }
 }

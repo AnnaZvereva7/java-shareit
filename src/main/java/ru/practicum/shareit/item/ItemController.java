@@ -95,7 +95,7 @@ public class ItemController {
                                       @RequestBody @Valid CommentDtoClass commentDto,
                                       @RequestHeader(Constants.USERID) long userId) {
         bookingService.checkForComment(userId, itemId);
-        commentDto.setAuthor_id(userId);
+        commentDto.setAuthorId(userId);
         return commentMapper.toCommentDto(itemService.addComment(commentMapper.toComment(commentDto, itemId)));
     }
 
