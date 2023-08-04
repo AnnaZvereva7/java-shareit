@@ -21,4 +21,16 @@ public class ItemMapper {
                 itemDto.getAvailable());
     }
 
+    public ItemDtoWithDate toItemDtoWithDate(Item item) {
+        return new ItemDtoWithDate(
+                item.getId(),
+                item.getName(),
+                item.getDescription(),
+                item.getAvailable(),
+                null,
+                null,
+                null
+        );
+    }
+
 }

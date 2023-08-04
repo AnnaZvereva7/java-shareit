@@ -14,7 +14,7 @@ import javax.validation.constraints.NotNull;
 @AllArgsConstructor
 public class UserDto {
     @NotNull(groups = Marker.OnUpdate.class)
-    private int id;
+    private long id;
     @NotBlank(groups = Marker.OnCreate.class)
     private String name;
     @NotNull(groups = Marker.OnCreate.class)

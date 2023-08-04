@@ -2,22 +2,23 @@ package ru.practicum.shareit.user.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.springframework.validation.annotation.Validated;
-import ru.practicum.shareit.exception.Marker;
+import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import javax.persistence.*;
 
 @Data
-@Validated
 @AllArgsConstructor
+@Entity
+@Table(name = "users")
+@NoArgsConstructor
 public class User {
-    @NotNull(groups = Marker.OnUpdate.class)
-    private int id;
-    @NotBlank(groups = Marker.OnCreate.class)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
+
+    @Column(nullable = false)
     private String name;
-    @NotNull(groups = Marker.OnCreate.class)
-    @Email
+
+    @Column(nullable = false, unique = true)
     private String email; //уникальный адрес
 }

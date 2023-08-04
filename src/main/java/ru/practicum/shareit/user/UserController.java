@@ -38,8 +38,7 @@ public class UserController {
     @PatchMapping("/{userId}")
     @Validated({Marker.OnUpdate.class})
     public UserDto updatePartial(@PathVariable int userId, @RequestBody @Valid UserDto userDto) {
-        userDto.setId(userId);
-        return mapper.toUserDto(userService.updatePartial(mapper.fromUserDto(userDto)));
+        return mapper.toUserDto(userService.update(userId, userDto.getName(), userDto.getEmail()));
     }
 
     @DeleteMapping("/{userId}")

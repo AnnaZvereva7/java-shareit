@@ -1,12 +1,65 @@
 package ru.practicum.shareit.booking;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.MediaType;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.booking.dto.BookingShortDto;
+import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.service.BookingService;
+import ru.practicum.shareit.constant.Constants;
+import ru.practicum.shareit.exception.LimitAccessException;
 
-/**
- * TODO Sprint add-bookings.
- */
+import javax.validation.constraints.NotNull;
+import java.util.List;
+
 @RestController
-@RequestMapping(path = "/bookings")
+@RequestMapping(path = "/bookings", produces = MediaType.APPLICATION_JSON_VALUE)
 public class BookingController {
+    private final BookingService bookingService;
+
+    public BookingController(BookingService bookingService) {
+        this.bookingService = bookingService;
+    }
+
+    @PostMapping
+    Booking create(@RequestBody @Validated BookingShortDto bookingDto,
+                   @RequestHeader(Constants.USERID) @NotNull long bookerId) {
+        bookingDto.checkPeriod();
+        return bookingService.create(bookingDto, bookerId);
+    }
+
+    @PatchMapping("/{bookingId}")
+    Booking approval(@RequestHeader(Constants.USERID) @NotNull long userId,
+                     @RequestParam @NotNull boolean approved,
+                     @PathVariable @NotNull long bookingId) {
+        if (bookingService.isUserOwner(userId, bookingId)) {
+            return bookingService.approval(bookingId, approved);
+        } else {
+            throw new LimitAccessException();
+        }
+    }
+
+    @GetMapping("/{bookingId}")
+    Booking findById(@RequestHeader(Constants.USERID) @NotNull long userId,
+                     @PathVariable @NotNull long bookingId) {
+        if (bookingService.isUserBooker(userId, bookingId)
+                || bookingService.isUserOwner(userId, bookingId)) {
+            return bookingService.findById(bookingId);
+        } else {
+            throw new LimitAccessException();
+        }
+    }
+
+    @GetMapping
+    List<Booking> findAllByBooker(@RequestHeader(Constants.USERID) @NotNull long userId,
+                                  @RequestParam(defaultValue = "ALL") String state) {
+        return bookingService.findAllByBooker(userId, state);
+    }
+
+    @GetMapping("/owner")
+    List<Booking> findAllByOwner(@RequestHeader(Constants.USERID) @NotNull long userId,
+                                 @RequestParam(defaultValue = "ALL") String state) {
+        return bookingService.findAllByOwner(userId, state);
+    }
+
 }

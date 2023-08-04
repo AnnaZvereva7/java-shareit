@@ -1,6 +1,7 @@
-package ru.practicum.shareit.item.itemRepositiry;
+package ru.practicum.shareit.item.repositiry;
 
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.ArrayList;
@@ -8,13 +9,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Component
-public class InMemoryItemRepository implements ItemRepository {
-    private final Map<Integer, Item> items = new HashMap<>();
-    int lastId = 0;
+@Repository
+@Qualifier("InMemoryItem")
+public class InMemoryItemRepositoryImpl implements ItemRepository {
+    private final Map<Long, Item> items = new HashMap<>();
+    long lastId = 0;
 
     @Override
-    public Item save(Item item) {
+    public Item save(Item item, long ownerId) {
         lastId += 1;
         item.setId(lastId);
         items.put(lastId, item);
@@ -22,7 +24,7 @@ public class InMemoryItemRepository implements ItemRepository {
     }
 
     @Override
-    public Item updatePartial(Item item, int id) {
+    public Item update(Item item, long id) {
         Item itemForUpdate = items.get(id);
         if (item.getName() != null) {
             itemForUpdate.setName(item.getName());
@@ -38,23 +40,18 @@ public class InMemoryItemRepository implements ItemRepository {
     }
 
     @Override
-    public void delete(int id) {
+    public void delete(long id) {
         items.remove(id);
 
     }
 
     @Override
-    public Item findById(int id) {
+    public Item findById(long id) {
         return items.get(id);
     }
 
     @Override
-    public Item findItemById(int id) {
-        return items.get(id);
-    }
-
-    @Override
-    public List<Item> findAllByUser(int userId) {
+    public List<Item> findAllByUser(long userId) {
         List<Item> userItems = new ArrayList<>();
         for (Item item : items.values()) {
             if (item.getOwnerId() == userId) {

@@ -1,6 +1,7 @@
-package ru.practicum.shareit.user.userRepository;
+package ru.practicum.shareit.user.repository;
 
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.NotUniqueEmailException;
 import ru.practicum.shareit.user.model.User;
@@ -10,10 +11,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Component
+@Repository
+@Qualifier("ImMemoryUsers")
 public class InMemoryUserRepository implements UserRepository {
-    Map<Integer, User> users = new HashMap<>();
-    int lastId = 0;
+    Map<Long, User> users = new HashMap<>();
+    long lastId = 0;
 
     @Override
     public User save(User user) {
@@ -28,34 +30,29 @@ public class InMemoryUserRepository implements UserRepository {
     }
 
     @Override
-    public User updatePartial(User user) {
-        User oldUser = users.get(user.getId());
-        if (user.getName() != null) {
-            oldUser.setName(user.getName());
+    public User update(long id, String name, String email) {
+        if (name != null) {
+            users.get(id).setName(name);
         }
-        if (user.getEmail() != null) {
-            if (isEmailUnique(user)) {
-                oldUser.setEmail(user.getEmail());
-            } else {
-                throw new NotUniqueEmailException();
-            }
+        if (email != null) {
+            users.get(id).setEmail(email);
         }
-        users.put(user.getId(), oldUser);
-        return users.get(user.getId());
+        return users.get(id);
     }
 
+
     @Override
-    public void delete(int id) {
+    public void delete(long id) {
         users.remove(id);
     }
 
     @Override
-    public User findById(int id) {
+    public User findById(long id) {
         return users.get(id);
     }
 
     @Override
-    public void containId(int id) {
+    public void containId(long id) {
         if (!users.containsKey(id)) throw new NotFoundException("Пользователя с id " + id + " не существует");
     }
 
