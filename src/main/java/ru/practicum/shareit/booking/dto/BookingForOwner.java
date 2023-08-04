@@ -7,7 +7,7 @@ public interface BookingForOwner {
 
     long getBookerId();
 
-    LocalDateTime getStart();
+    LocalDateTime getStartDate();
 
-    LocalDateTime getEnd();
+    LocalDateTime getEndDate();
 }

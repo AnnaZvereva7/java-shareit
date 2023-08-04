@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,9 +19,11 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(name = "start_date", nullable = false)
-    private LocalDateTime start;
+    @JsonProperty(value = "start")
+    private LocalDateTime startDate;
     @Column(name = "end_date", nullable = false)
-    private LocalDateTime end;
+    @JsonProperty(value = "end")
+    private LocalDateTime endDate;
     @ManyToOne
     @JoinColumn(name = "item_id", nullable = false)
     private Item item;

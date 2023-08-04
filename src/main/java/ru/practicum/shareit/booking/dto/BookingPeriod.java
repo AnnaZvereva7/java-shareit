@@ -3,7 +3,7 @@ package ru.practicum.shareit.booking.dto;
 import java.time.LocalDateTime;
 
 public interface BookingPeriod {
-    LocalDateTime getStart();
+    LocalDateTime getStartDate();
 
-    LocalDateTime getEnd();
+    LocalDateTime getEndDate();
 }

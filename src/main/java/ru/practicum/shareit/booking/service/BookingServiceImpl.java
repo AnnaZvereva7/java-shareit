@@ -59,13 +59,13 @@ public class BookingServiceImpl implements BookingService {
             if (periods.isEmpty()) {
                 return true;
             }
-            if (periods.get(0).getStart().isAfter(end)) {
+            if (periods.get(0).getStartDate().isAfter(end)) {
                 return true;
-            } else if (periods.get(periods.size() - 1).getEnd().isBefore(start)) {
+            } else if (periods.get(periods.size() - 1).getEndDate().isBefore(start)) {
                 return true;
             } else if (periods.size() > 1) {
                 for (int i = 0; i < periods.size() - 1; i++) {
-                    if (periods.get(i).getEnd().isBefore(start) && periods.get(i + 1).getStart().isAfter(end)) {
+                    if (periods.get(i).getEndDate().isBefore(start) && periods.get(i + 1).getStartDate().isAfter(end)) {
                         return true;
                     }
                 }
@@ -121,7 +121,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<Booking> findAllByBooker(long bookerId, String state) {
         userRepository.findById(bookerId);
-        List<Booking> bookings = repository.findAllByBookerIdOrderByStartDesc(bookerId);
+        List<Booking> bookings = repository.findAllByBookerIdOrderByStartDateDesc(bookerId);
         return filterByState(bookings, state);
     }
 
@@ -132,7 +132,7 @@ public class BookingServiceImpl implements BookingService {
             case "PAST":
                 return bookings
                         .stream()
-                        .filter(booking -> booking.getEnd().isBefore(LocalDateTime.now()))
+                        .filter(booking -> booking.getEndDate().isBefore(LocalDateTime.now()))
                         .collect(Collectors.toList());
             case "WAITING":
                 return bookings
@@ -150,8 +150,8 @@ public class BookingServiceImpl implements BookingService {
                         .filter(booking -> (booking.getStatus() == BookingStatus.APPROVED
                                 || booking.getStatus() == BookingStatus.REJECTED
                                 || booking.getStatus() == BookingStatus.WAITING)
-                                && booking.getStart().isBefore(LocalDateTime.now())
-                                && booking.getEnd().isAfter(LocalDateTime.now()))
+                                && booking.getStartDate().isBefore(LocalDateTime.now())
+                                && booking.getEndDate().isAfter(LocalDateTime.now()))
                         .collect(Collectors.toList());
             case "FUTURE":
                 return bookings
@@ -159,7 +159,7 @@ public class BookingServiceImpl implements BookingService {
                         .filter(booking -> (booking.getStatus() == BookingStatus.APPROVED
                                 || booking.getStatus() == BookingStatus.WAITING
                                 || booking.getStatus() == BookingStatus.REJECTED)
-                                && booking.getStart().isAfter(LocalDateTime.now()))
+                                && booking.getStartDate().isAfter(LocalDateTime.now()))
                         .collect(Collectors.toList());
             default:
                 throw new RuntimeException("Unknown state: " + state);

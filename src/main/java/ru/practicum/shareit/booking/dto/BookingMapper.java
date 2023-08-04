@@ -5,13 +5,13 @@ import ru.practicum.shareit.booking.model.Booking;
 
 @Component
 public class BookingMapper {
-    public BookingDtoImpl toBookingDto(Booking booking) {
-        return new BookingDtoImpl(booking.getId(),
+    public BookingDto toBookingDto(Booking booking) {
+        return new BookingDto(booking.getId(),
                 booking.getItem().getId(),
                 booking.getItem().getName(),
                 booking.getBooker().getId(),
                 booking.getStatus(),
-                booking.getStart(),
-                booking.getEnd());
+                booking.getStartDate(),
+                booking.getEndDate());
     }
 }
