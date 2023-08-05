@@ -25,5 +25,6 @@ public interface ItemService {
     Comment addComment(Comment comment);
 
     ItemDtoWithDate getCommentsForItem(ItemDtoWithDate item);
+
     public List<ItemDtoWithDate> getCommentsForItems(List<ItemDtoWithDate> items);
 }

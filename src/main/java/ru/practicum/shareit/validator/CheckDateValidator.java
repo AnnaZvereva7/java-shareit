@@ -16,7 +16,7 @@ public class CheckDateValidator implements ConstraintValidator<StartBeforeEndVal
     public boolean isValid(BookingDtoRequest booking, ConstraintValidatorContext context) {
         LocalDateTime start = booking.getStart();
         LocalDateTime end = booking.getEnd();
-        if(start==null||end==null) {
+        if (start == null || end == null) {
             return false;
         }
         return start.isBefore(end);

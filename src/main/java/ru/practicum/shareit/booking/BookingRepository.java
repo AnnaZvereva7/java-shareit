@@ -41,17 +41,17 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "order by booking.start_date desc", nativeQuery = true)
     List<Booking> findAllByOwnerId(long ownerId);
 
-    @Query(value = "select distinct first_value(id) over win_lb as id, first_value(item_id) over win_lb as itemId, "+
+    @Query(value = "select distinct first_value(id) over win_lb as id, first_value(item_id) over win_lb as itemId, " +
             "first_value(booker_id) over win_lb as bookerId, " +
-            "first_value(start_date) over win_lb as startDate, first_value(end_date) over win_lb as endDate "+
-            "from booking where item_id in ?1 and start_date<=?2 "+
+            "first_value(start_date) over win_lb as startDate, first_value(end_date) over win_lb as endDate " +
+            "from booking where item_id in ?1 and start_date<=?2 " +
             "WINDOW win_lb AS (Partition By item_id ORDER BY start_date DESC) ", nativeQuery = true)
     List<BookingDtoForOwner> findLastBookingForItem(List<Long> itemsId, LocalDateTime now);
 
-    @Query(value = "select distinct first_value(id) over win_nb as id, first_value(item_id) over win_nb as itemId, "+
+    @Query(value = "select distinct first_value(id) over win_nb as id, first_value(item_id) over win_nb as itemId, " +
             "first_value(booker_id) over win_nb as bookerId, " +
-            "first_value(start_date) over win_nb as startDate, first_value(end_date) over win_nb as endDate "+
-            "from booking where item_id in ?1 and booking.start_date>?2 and status in ('APPROVED', 'WAITING') "+
+            "first_value(start_date) over win_nb as startDate, first_value(end_date) over win_nb as endDate " +
+            "from booking where item_id in ?1 and booking.start_date>?2 and status in ('APPROVED', 'WAITING') " +
             "WINDOW win_nb AS (Partition By item_id ORDER BY start_date) ",
             nativeQuery = true)
     List<BookingDtoForOwner> findNextBookingForItems(List<Long> itemsId, LocalDateTime now);

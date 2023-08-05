@@ -128,17 +128,17 @@ public class ItemServiceImp implements ItemService {
         List<Long> itemsId = items.stream()
                 .map(itemDtoWithDate -> itemDtoWithDate.getId())
                 .collect(toList());
-        List <CommentDto> comments=commentsRepository.findAllCommentsByItemsId(itemsId);
+        List<CommentDto> comments = commentsRepository.findAllCommentsByItemsId(itemsId);
         Map<Long, List<CommentDto>> commentsByItem = new HashMap<>();
-        for(CommentDto comment:comments) {
+        for (CommentDto comment : comments) {
             if (commentsByItem.containsKey(comment.getItemId())) {
                 commentsByItem.get(comment.getItemId()).add(comment);
             } else {
-                List<CommentDto> newList=List.of(comment);
-                commentsByItem.put(comment.getItemId(),newList);
+                List<CommentDto> newList = List.of(comment);
+                commentsByItem.put(comment.getItemId(), newList);
             }
         }
-        for(ItemDtoWithDate item:items) {
+        for (ItemDtoWithDate item : items) {
             item.setComments(commentsByItem.get(item.getId()));
         }
         return items;

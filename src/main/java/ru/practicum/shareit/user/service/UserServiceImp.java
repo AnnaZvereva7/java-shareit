@@ -13,7 +13,7 @@ import java.util.Optional;
 public class UserServiceImp implements UserService {
     private final UserRepository repository;
 
-    public UserServiceImp( UserRepository userRepository) {
+    public UserServiceImp(UserRepository userRepository) {
         this.repository = userRepository;
     }
 
@@ -24,11 +24,11 @@ public class UserServiceImp implements UserService {
     @Override
     public User update(long id, String name, String email) {
         User user = findById(id);
-        if(name!=null&&!name.isBlank()) {
+        if (name != null && !name.isBlank()) {
             user.setName(name);
         }
-        if (email!=null&&!email.isBlank()) {
-            if(repository.findUserWithSameEmail(email, id)==null) {
+        if (email != null && !email.isBlank()) {
+            if (repository.findUserWithSameEmail(email, id) == null) {
                 user.setEmail(email);
             } else {
                 throw new NotUniqueEmailException();
@@ -42,13 +42,13 @@ public class UserServiceImp implements UserService {
     }
 
     public User findById(long id) {
-        Optional<User> userOptional=repository.findById(id);
+        Optional<User> userOptional = repository.findById(id);
         if (userOptional.isPresent()) {
             return userOptional.get();
-        } else  {
+        } else {
             throw new NotFoundException(User.class);
         }
-}
+    }
 
     public List<User> findAll() {
         return repository.findAll();

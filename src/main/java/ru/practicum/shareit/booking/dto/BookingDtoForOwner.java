@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 public interface BookingDtoForOwner {
     long getId();
+
     long getItemId();
 
     long getBookerId();

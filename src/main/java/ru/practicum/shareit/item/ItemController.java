@@ -55,13 +55,13 @@ public class ItemController {
 
     @GetMapping
     public List<ItemDtoWithDate> findAllByUser(@RequestHeader("X-Sharer-User-Id") long userId) {
-       List<ItemDtoWithDate> itemsDto= itemService.findAllByUser(userId)
+        List<ItemDtoWithDate> itemsDto = itemService.findAllByUser(userId)
                 .stream()
                 .map(mapper::toItemDtoWithDate)
                 .collect(toList());
-       itemsDto=itemService.getCommentsForItems(itemsDto);
-       itemsDto=itemService.lastNextBookingForItem(itemsDto);
-       return itemsDto;
+        itemsDto = itemService.getCommentsForItems(itemsDto);
+        itemsDto = itemService.lastNextBookingForItem(itemsDto);
+        return itemsDto;
     }
 
     @PostMapping
