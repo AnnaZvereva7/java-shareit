@@ -30,18 +30,14 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler(value = {WrongStatusException.class,
-            NotFoundCommentException.class,
-            NotAvailableForCommentException.class,
-            NotAvailableException.class,
-            DateTimeException.class})
+            NotAvailableException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> badRequestException(RuntimeException e) {
         log.debug("Получен статус 400 Bad request {}", e.getMessage(), e);
         return Map.of("error", e.getMessage());
     }
 
-    @ExceptionHandler(value = {BookingByOwnerException.class,
-            LimitAccessException.class,
+    @ExceptionHandler(value = {LimitAccessException.class,
             NotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Map<String, String> notFoundException(RuntimeException e) {
@@ -61,7 +57,6 @@ public class ErrorHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Map<String, String> otherException(Exception e) {
         log.debug("Получен статус 500 Internal server error {}", e.getMessage(), e);
-        e.printStackTrace();
         return Map.of("error", e.getMessage());
     }
 }

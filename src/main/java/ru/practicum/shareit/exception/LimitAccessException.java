@@ -1,7 +1,7 @@
 package ru.practicum.shareit.exception;
 
 public class LimitAccessException extends RuntimeException {
-    public LimitAccessException() {
-        super("Доступ для внесения изменений запрещен");
+    public LimitAccessException(String message) {
+        super("Limit access to "+ message);
     }
 }

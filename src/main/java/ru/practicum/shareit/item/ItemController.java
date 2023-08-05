@@ -9,6 +9,7 @@ import ru.practicum.shareit.exception.Marker;
 import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
 import javax.validation.Valid;
@@ -44,9 +45,9 @@ public class ItemController {
     public ItemDtoWithDate findById(@PathVariable long itemId, @RequestHeader(Constants.USERID) long userId) {
         Item item = itemService.findById(itemId);
         ItemDtoWithDate itemDto = mapper.toItemDtoWithDate(item);
-        itemDto = itemService.getComments(itemDto);
+        itemDto = itemService.getCommentsForItem(itemDto);
         if (item.getOwnerId() == userId) {
-            return (itemService.lastNextBookingForItem(itemDto));
+            return (itemService.lastNextBookingForItem(List.of(itemDto))).get(0);
         } else {
             return itemDto;
         }
@@ -54,12 +55,13 @@ public class ItemController {
 
     @GetMapping
     public List<ItemDtoWithDate> findAllByUser(@RequestHeader("X-Sharer-User-Id") long userId) {
-        return itemService.findAllByUser(userId)
+       List<ItemDtoWithDate> itemsDto= itemService.findAllByUser(userId)
                 .stream()
                 .map(mapper::toItemDtoWithDate)
-                .map(itemService::lastNextBookingForItem)
-                .map(itemService::getComments)
                 .collect(toList());
+       itemsDto=itemService.getCommentsForItems(itemsDto);
+       itemsDto=itemService.lastNextBookingForItem(itemsDto);
+       return itemsDto;
     }
 
     @PostMapping
@@ -70,11 +72,10 @@ public class ItemController {
 
     @PatchMapping("/{itemId}")
     @Validated(Marker.OnUpdate.class)
-    public ItemDto updatePartial(@RequestBody @Valid ItemDto itemDto,
-                                 @RequestHeader("X-Sharer-User-Id") long userId,
-                                 @PathVariable long itemId) {
-        Item itemUpdate = mapper.fromItemDto(itemDto);
-        Item updatedItem = itemService.updatePartial(itemUpdate, itemId, userId);
+    public ItemDto update(@RequestBody @Valid ItemDto itemDto,
+                          @RequestHeader("X-Sharer-User-Id") long userId,
+                          @PathVariable long itemId) {
+        Item updatedItem = itemService.update(itemDto, itemId, userId);
         return mapper.toItemDto(updatedItem);
     }
 
@@ -91,12 +92,13 @@ public class ItemController {
     }
 
     @PostMapping("/{itemId}/comment")
-    public CommentDtoClass addComment(@PathVariable long itemId,
-                                      @RequestBody @Valid CommentDtoClass commentDto,
-                                      @RequestHeader(Constants.USERID) long userId) {
+    public CommentDtoResponse addComment(@PathVariable long itemId,
+                                         @RequestBody @Valid CommentDtoRequest commentDto,
+                                         @RequestHeader(Constants.USERID) long userId) {
+        User author = userService.findById(userId);
+        Item item = itemService.findById(itemId);
         bookingService.checkForComment(userId, itemId);
-        commentDto.setAuthorId(userId);
-        return commentMapper.toCommentDto(itemService.addComment(commentMapper.toComment(commentDto, itemId)));
+        return commentMapper.toCommentDto(itemService.addComment(commentMapper.toComment(commentDto, item, author)));
     }
 
 

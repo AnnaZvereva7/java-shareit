@@ -1,21 +1,25 @@
 package ru.practicum.shareit.item.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.*;
 import org.springframework.validation.annotation.Validated;
 import ru.practicum.shareit.exception.Marker;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
 @Validated
 @AllArgsConstructor
 public class ItemDto {
     private long id;
     @NotBlank(groups = Marker.OnCreate.class)
+    @Size(max = 50)
     private String name;
     @NotBlank(groups = Marker.OnCreate.class)
+    @Size(max = 256)
     private String description;
     @NotNull(groups = Marker.OnCreate.class)
     private Boolean available;

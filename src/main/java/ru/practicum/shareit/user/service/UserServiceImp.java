@@ -1,39 +1,56 @@
 package ru.practicum.shareit.user.service;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.NotUniqueEmailException;
+import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class UserServiceImp implements UserService {
-    private final UserRepository userRepository;
+    private final UserRepository repository;
 
-    public UserServiceImp(@Qualifier("DBUsers") UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserServiceImp( UserRepository userRepository) {
+        this.repository = userRepository;
     }
 
     public User save(User user) {
-        return userRepository.save(user);
+        return repository.save(user);
     }
 
     @Override
     public User update(long id, String name, String email) {
-        userRepository.update(id, name, email);
-        return userRepository.findById(id);
+        User user = findById(id);
+        if(name!=null&&!name.isBlank()) {
+            user.setName(name);
+        }
+        if (email!=null&&!email.isBlank()) {
+            if(repository.findUserWithSameEmail(email, id)==null) {
+                user.setEmail(email);
+            } else {
+                throw new NotUniqueEmailException();
+            }
+        }
+        return repository.saveAndFlush(user);
     }
 
     public void delete(long id) {
-        userRepository.delete(id);
+        repository.deleteById(id);
     }
 
     public User findById(long id) {
-        return userRepository.findById(id);
-    }
+        Optional<User> userOptional=repository.findById(id);
+        if (userOptional.isPresent()) {
+            return userOptional.get();
+        } else  {
+            throw new NotFoundException(User.class);
+        }
+}
 
     public List<User> findAll() {
-        return userRepository.findAll();
+        return repository.findAll();
     }
 }

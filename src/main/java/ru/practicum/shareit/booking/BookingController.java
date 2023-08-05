@@ -3,7 +3,7 @@ package ru.practicum.shareit.booking;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.booking.dto.BookingShortDto;
+import ru.practicum.shareit.booking.dto.BookingDtoRequest;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.constant.Constants;
@@ -22,9 +22,8 @@ public class BookingController {
     }
 
     @PostMapping
-    Booking create(@RequestBody @Validated BookingShortDto bookingDto,
+    Booking create(@RequestBody @Validated BookingDtoRequest bookingDto,
                    @RequestHeader(Constants.USERID) @NotNull long bookerId) {
-        bookingDto.checkPeriod();
         return bookingService.create(bookingDto, bookerId);
     }
 
@@ -35,7 +34,7 @@ public class BookingController {
         if (bookingService.isUserOwner(userId, bookingId)) {
             return bookingService.approval(bookingId, approved);
         } else {
-            throw new LimitAccessException();
+            throw new LimitAccessException(" approval");
         }
     }
 
@@ -46,7 +45,7 @@ public class BookingController {
                 || bookingService.isUserOwner(userId, bookingId)) {
             return bookingService.findById(bookingId);
         } else {
-            throw new LimitAccessException();
+            throw new LimitAccessException("booking");
         }
     }
 

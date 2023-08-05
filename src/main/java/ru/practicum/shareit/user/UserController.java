@@ -30,14 +30,14 @@ public class UserController {
     }
 
     @PostMapping
-    @Validated({Marker.OnCreate.class})
+    @Validated(Marker.OnCreate.class)
     public UserDto save(@RequestBody @Valid UserDto userDto) {
         return mapper.toUserDto(userService.save(mapper.fromUserDto(userDto)));
     }
 
     @PatchMapping("/{userId}")
-    @Validated({Marker.OnUpdate.class})
-    public UserDto updatePartial(@PathVariable int userId, @RequestBody @Valid UserDto userDto) {
+    @Validated(Marker.OnUpdate.class)
+    public UserDto update(@PathVariable int userId, @RequestBody @Valid UserDto userDto) {
         return mapper.toUserDto(userService.update(userId, userDto.getName(), userDto.getEmail()));
     }
 

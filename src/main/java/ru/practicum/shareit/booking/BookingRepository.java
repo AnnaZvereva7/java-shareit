@@ -3,7 +3,7 @@ package ru.practicum.shareit.booking;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import ru.practicum.shareit.booking.dto.BookingForOwner;
+import ru.practicum.shareit.booking.dto.BookingDtoForOwner;
 import ru.practicum.shareit.booking.dto.BookingPeriod;
 import ru.practicum.shareit.booking.model.Booking;
 
@@ -41,18 +41,20 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             "order by booking.start_date desc", nativeQuery = true)
     List<Booking> findAllByOwnerId(long ownerId);
 
-    @Query(value = "select booking.id, booking.booker_id as bookerId, booking.start_date as startDate, " +
-            "booking.end_date as endDate from booking inner join items on booking.item_id=items.id " +
-            "where items.id = ?1 and booking.start_date<=?2 " +
-            "and booking.status in ('APPROVED', 'WAITING', 'CANCELED') " +
-            "order by booking.start_date desc limit 1", nativeQuery = true)
-    BookingForOwner findLastBookingPeriodForItem(long itemId, LocalDateTime now);
+    @Query(value = "select distinct first_value(id) over win_lb as id, first_value(item_id) over win_lb as itemId, "+
+            "first_value(booker_id) over win_lb as bookerId, " +
+            "first_value(start_date) over win_lb as startDate, first_value(end_date) over win_lb as endDate "+
+            "from booking where item_id in ?1 and start_date<=?2 "+
+            "WINDOW win_lb AS (Partition By item_id ORDER BY start_date DESC) ", nativeQuery = true)
+    List<BookingDtoForOwner> findLastBookingForItem(List<Long> itemsId, LocalDateTime now);
 
-    @Query(value = "select booking.id, booking.booker_id as bookerId, booking.start_date as startDate, " +
-            "booking.end_date as endDate from booking inner join items on booking.item_id=items.id " +
-            "where items.id = ?1 and booking.start_date>?2 and booking.status in ('APPROVED', 'WAITING') " +
-            "order by booking.start_date limit 1", nativeQuery = true)
-    BookingForOwner findNextBookingPeriodForItem(long itemId, LocalDateTime now);
+    @Query(value = "select distinct first_value(id) over win_nb as id, first_value(item_id) over win_nb as itemId, "+
+            "first_value(booker_id) over win_nb as bookerId, " +
+            "first_value(start_date) over win_nb as startDate, first_value(end_date) over win_nb as endDate "+
+            "from booking where item_id in ?1 and booking.start_date>?2 and status in ('APPROVED', 'WAITING') "+
+            "WINDOW win_nb AS (Partition By item_id ORDER BY start_date) ",
+            nativeQuery = true)
+    List<BookingDtoForOwner> findNextBookingForItems(List<Long> itemsId, LocalDateTime now);
 
     @Query(value = "select count(booking.id) from items inner join booking on items.id=booking.item_id " +
             "where booking.booker_id=?1 and items.id=?2 and booking.status in ('APPROVED', 'CANCELED') " +

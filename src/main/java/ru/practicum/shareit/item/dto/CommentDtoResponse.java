@@ -1,20 +1,21 @@
 package ru.practicum.shareit.item.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.*;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 @Validated
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor
-public class CommentDtoClass {
+public class CommentDtoResponse {
     private long id;
-    @NotNull
     @NotBlank
+    @Size(max = 256)
     private String text;
     private long authorId;
     private String authorName;

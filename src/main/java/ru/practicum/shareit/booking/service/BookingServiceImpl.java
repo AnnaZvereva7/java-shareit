@@ -1,16 +1,15 @@
 package ru.practicum.shareit.booking.service;
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingPeriod;
-import ru.practicum.shareit.booking.dto.BookingShortDto;
+import ru.practicum.shareit.booking.dto.BookingDtoRequest;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.exception.*;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.item.repositiry.ItemRepository;
-import ru.practicum.shareit.user.repository.UserRepository;
+import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.user.service.UserService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,37 +18,37 @@ import java.util.stream.Collectors;
 @Service
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository repository;
-    private final ItemRepository itemRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
+    private final ItemService itemService;
+
 
     public BookingServiceImpl(BookingRepository repository,
-                              @Qualifier("DBItem") ItemRepository itemRepository,
-                              @Qualifier("DBUsers") UserRepository userRepository) {
+                              UserService userService, ItemService itemService) {
         this.repository = repository;
-        this.itemRepository = itemRepository;
-        this.userRepository = userRepository;
+        this.userService = userService;
+        this.itemService = itemService;
     }
 
     @Override
-    public Booking create(BookingShortDto bookingDto, long bookerId) {
+    public Booking create(BookingDtoRequest bookingDto, long bookerId) {
         if (isBookingAvailable(bookingDto, bookerId)) {
             Booking booking = new Booking(null,
                     bookingDto.getStart(),
                     bookingDto.getEnd(),
-                    itemRepository.findById(bookingDto.getItemId()),
-                    userRepository.findById(bookerId),
+                    itemService.findById(bookingDto.getItemId()),
+                    userService.findById(bookerId),
                     BookingStatus.WAITING);
             return repository.save(booking);
         } else {
-            throw new NotAvailableException();
+            throw new NotAvailableException("for booking");
         }
     }
 
-    private boolean isBookingAvailable(BookingShortDto bookingDto, long bookerId) {
+    private boolean isBookingAvailable(BookingDtoRequest bookingDto, long bookerId) {
         long itemId = bookingDto.getItemId();
-        Item item = itemRepository.findById(itemId);
+        Item item = itemService.findById(itemId);
         if (item.getOwnerId() == bookerId) {
-            throw new BookingByOwnerException("Нельзя забронировать свою вещь");
+            throw new LimitAccessException("Нельзя забронировать свою вещь");
         } else if (!item.getAvailable()) {
             return false;
         } else {
@@ -88,7 +87,7 @@ public class BookingServiceImpl implements BookingService {
     private boolean isStatusCorrect(long bookingId) {
         String status = repository.getStatusById(bookingId);
         if (status == null) {
-            throw new NotFoundException("бронирование не найдено");
+            throw new NotFoundException(Booking.class);
         } else if (status.equals("WAITING")) {
             return true;
         } else {
@@ -113,14 +112,14 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<Booking> findAllByOwner(long ownerId, String state) {
-        userRepository.findById(ownerId);
+        userService.findById(ownerId);
         List<Booking> bookings = repository.findAllByOwnerId(ownerId);
         return filterByState(bookings, state);
     }
 
     @Override
     public List<Booking> findAllByBooker(long bookerId, String state) {
-        userRepository.findById(bookerId);
+        userService.findById(bookerId);
         List<Booking> bookings = repository.findAllByBookerIdOrderByStartDateDesc(bookerId);
         return filterByState(bookings, state);
     }
@@ -170,7 +169,7 @@ public class BookingServiceImpl implements BookingService {
         if (repository.checkForComment(userId, itemId, LocalDateTime.now()) >= 1) {
             return true;
         } else {
-            throw new NotFoundCommentException("нет бронирования для комментария");
+            throw new NotAvailableException("for comment");
         }
     }
 }

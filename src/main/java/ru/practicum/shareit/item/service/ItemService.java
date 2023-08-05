@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item.service;
 
+import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoWithDate;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
@@ -9,7 +10,7 @@ import java.util.List;
 public interface ItemService {
     Item save(Item item, long ownerId);
 
-    Item updatePartial(Item item, long id, long userId);
+    Item update(ItemDto itemDto, long id, long userId);
 
     void delete(long id);
 
@@ -19,9 +20,10 @@ public interface ItemService {
 
     List<Item> findByText(String text);
 
-    public ItemDtoWithDate lastNextBookingForItem(ItemDtoWithDate item);
+    List<ItemDtoWithDate> lastNextBookingForItem(List<ItemDtoWithDate> itemsDto);
 
-    public Comment addComment(Comment comment);
+    Comment addComment(Comment comment);
 
-    public ItemDtoWithDate getComments(ItemDtoWithDate item);
+    ItemDtoWithDate getCommentsForItem(ItemDtoWithDate item);
+    public List<ItemDtoWithDate> getCommentsForItems(List<ItemDtoWithDate> items);
 }
