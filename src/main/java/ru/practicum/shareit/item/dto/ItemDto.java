@@ -14,7 +14,6 @@ import javax.validation.constraints.Size;
 @Getter
 @Setter
 @NoArgsConstructor
-@Validated
 @AllArgsConstructor
 public class ItemDto {
     private long id;

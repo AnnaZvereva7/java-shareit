@@ -1,10 +1,10 @@
-package ru.practicum.shareit.user.service;
+package ru.practicum.shareit.users.service;
 
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.NotUniqueEmailException;
-import ru.practicum.shareit.user.UserRepository;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.users.UserRepository;
+import ru.practicum.shareit.users.model.User;
 
 import java.util.List;
 import java.util.Optional;

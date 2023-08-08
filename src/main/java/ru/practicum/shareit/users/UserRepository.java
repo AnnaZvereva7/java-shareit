@@ -1,8 +1,8 @@
-package ru.practicum.shareit.user;
+package ru.practicum.shareit.users;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.users.model.User;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 

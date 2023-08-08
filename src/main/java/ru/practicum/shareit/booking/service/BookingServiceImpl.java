@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking.service;
 
+import jdk.jshell.Snippet;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingDtoRequest;
@@ -12,7 +13,7 @@ import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.WrongStatusException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
-import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.users.service.UserService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -114,59 +115,47 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<Booking> findAllByOwner(long ownerId, String state) {
+    public List<Booking> findAllByOwner(long ownerId, State state) {
         userService.findById(ownerId);
-        List<Booking> bookings = repository.findAllByOwnerId(ownerId);
-        return filterByState(bookings, state);
+        switch (state) {
+            case ALL:
+                return repository.findAllByOwnerId(ownerId);
+            case PAST:
+                return repository.findPastByOwnerId(ownerId, LocalDateTime.now());
+            case WAITING:
+                return repository.findByOwnerIdAndStatus(ownerId, BookingStatus.WAITING.name());
+            case REJECTED:
+                return repository.findByOwnerIdAndStatus(ownerId, BookingStatus.REJECTED.name());
+            case CURRENT:
+                return repository.findCurrentByOwnerId(ownerId, LocalDateTime.now(), LocalDateTime.now());
+            case FUTURE:
+                return repository.findFutureByOwnerId(ownerId, LocalDateTime.now());
+            default:
+                throw new RuntimeException("unknown state");
+        }
     }
 
     @Override
-    public List<Booking> findAllByBooker(long bookerId, String state) {
+    public List<Booking> findAllByBooker(long bookerId, State state) {
         userService.findById(bookerId);
-        List<Booking> bookings = repository.findAllByBookerIdOrderByStartDateDesc(bookerId);
-        return filterByState(bookings, state);
-    }
-
-    private List<Booking> filterByState(List<Booking> bookings, String state) {
         switch (state) {
-            case "ALL":
-                return bookings;
-            case "PAST":
-                return bookings
-                        .stream()
-                        .filter(booking -> booking.getEndDate().isBefore(LocalDateTime.now()))
-                        .collect(Collectors.toList());
-            case "WAITING":
-                return bookings
-                        .stream()
-                        .filter(booking -> booking.getStatus() == BookingStatus.WAITING)
-                        .collect(Collectors.toList());
-            case "REJECTED":
-                return bookings
-                        .stream()
-                        .filter(booking -> booking.getStatus() == BookingStatus.REJECTED)
-                        .collect(Collectors.toList());
-            case "CURRENT":
-                return bookings
-                        .stream()
-                        .filter(booking -> (booking.getStatus() == BookingStatus.APPROVED
-                                || booking.getStatus() == BookingStatus.REJECTED
-                                || booking.getStatus() == BookingStatus.WAITING)
-                                && booking.getStartDate().isBefore(LocalDateTime.now())
-                                && booking.getEndDate().isAfter(LocalDateTime.now()))
-                        .collect(Collectors.toList());
-            case "FUTURE":
-                return bookings
-                        .stream()
-                        .filter(booking -> (booking.getStatus() == BookingStatus.APPROVED
-                                || booking.getStatus() == BookingStatus.WAITING
-                                || booking.getStatus() == BookingStatus.REJECTED)
-                                && booking.getStartDate().isAfter(LocalDateTime.now()))
-                        .collect(Collectors.toList());
+            case ALL:
+                return repository.findAllByBookerIdOrderByStartDateDesc(bookerId);
+            case WAITING:
+                return repository.findAllByBookerIdAndStatusOrderByStartDateDesc(bookerId, BookingStatus.WAITING);
+            case REJECTED:
+                return repository.findAllByBookerIdAndStatusOrderByStartDateDesc(bookerId, BookingStatus.REJECTED);
+            case FUTURE:
+                return repository.findAllByBookerIdAndStartDateAfterOrderByStartDateDesc(bookerId, LocalDateTime.now());
+            case PAST:
+                return repository.findAllByBookerIdAndEndDateBeforeOrderByStartDateDesc(bookerId, LocalDateTime.now());
+            case CURRENT:
+                return repository.findAllByBookerIdAndEndDateAfterAndStartDateBeforeOrderByStartDateDesc(bookerId, LocalDateTime.now(), LocalDateTime.now());
             default:
-                throw new RuntimeException("Unknown state: " + state);
+                throw new RuntimeException("unknown state");
         }
     }
+
 
     public boolean checkForComment(long userId, long itemId) {
         if (repository.checkForComment(userId, itemId, LocalDateTime.now()) >= 1) {
@@ -175,4 +164,5 @@ public class BookingServiceImpl implements BookingService {
             throw new NotAvailableException("for comment");
         }
     }
+
 }

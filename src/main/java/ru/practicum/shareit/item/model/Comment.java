@@ -4,10 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.users.model.User;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 
@@ -30,6 +29,5 @@ public class Comment {
     @ManyToOne
     @JoinColumn(name = "author_id", referencedColumnName = "id")
     private User author;
-    @NotNull
-    LocalDateTime created;
+    private LocalDateTime created;
 }

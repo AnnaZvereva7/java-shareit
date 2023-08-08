@@ -6,8 +6,10 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDtoRequest;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.service.BookingService;
+import ru.practicum.shareit.booking.service.State;
 import ru.practicum.shareit.constant.Constants;
 import ru.practicum.shareit.exception.LimitAccessException;
+import ru.practicum.shareit.exception.WrongStatusException;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -23,14 +25,14 @@ public class BookingController {
 
     @PostMapping
     Booking create(@RequestBody @Validated BookingDtoRequest bookingDto,
-                   @RequestHeader(Constants.USERID) @NotNull long bookerId) {
+                   @RequestHeader(Constants.USERID) Long bookerId) {
         return bookingService.create(bookingDto, bookerId);
     }
 
     @PatchMapping("/{bookingId}")
-    Booking approval(@RequestHeader(Constants.USERID) @NotNull long userId,
-                     @RequestParam @NotNull boolean approved,
-                     @PathVariable @NotNull long bookingId) {
+    Booking approval(@RequestHeader(Constants.USERID) Long userId,
+                     @RequestParam @NotNull Boolean approved,
+                     @PathVariable Long bookingId) {
         if (bookingService.isUserOwner(userId, bookingId)) {
             return bookingService.approval(bookingId, approved);
         } else {
@@ -39,8 +41,8 @@ public class BookingController {
     }
 
     @GetMapping("/{bookingId}")
-    Booking findById(@RequestHeader(Constants.USERID) @NotNull long userId,
-                     @PathVariable @NotNull long bookingId) {
+    Booking findById(@RequestHeader(Constants.USERID) Long userId,
+                     @PathVariable Long bookingId) {
         if (bookingService.isUserBooker(userId, bookingId)
                 || bookingService.isUserOwner(userId, bookingId)) {
             return bookingService.findById(bookingId);
@@ -50,15 +52,25 @@ public class BookingController {
     }
 
     @GetMapping
-    List<Booking> findAllByBooker(@RequestHeader(Constants.USERID) @NotNull long userId,
+    List<Booking> findAllByBooker(@RequestHeader(Constants.USERID) Long userId,
                                   @RequestParam(defaultValue = "ALL") String state) {
-        return bookingService.findAllByBooker(userId, state);
+        try {
+            State stateEnum = State.valueOf(state);
+            return bookingService.findAllByBooker(userId, stateEnum);
+        } catch (IllegalArgumentException e) {
+            throw new WrongStatusException("Unknown state: " + state);
+        }
     }
 
     @GetMapping("/owner")
-    List<Booking> findAllByOwner(@RequestHeader(Constants.USERID) @NotNull long userId,
+    List<Booking> findAllByOwner(@RequestHeader(Constants.USERID) Long userId,
                                  @RequestParam(defaultValue = "ALL") String state) {
-        return bookingService.findAllByOwner(userId, state);
+        try {
+            State stateEnum = State.valueOf(state);
+            return bookingService.findAllByOwner(userId, stateEnum);
+        } catch (IllegalArgumentException e) {
+            throw new WrongStatusException("Unknown state: " + state);
+        }
     }
 
 }

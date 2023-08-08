@@ -16,9 +16,10 @@ public interface BookingService {
 
     Booking findById(long bookingId);
 
-    List<Booking> findAllByOwner(long ownerId, String state);
+    List<Booking> findAllByOwner(long ownerId, State state);
 
-    List<Booking> findAllByBooker(long bookerId, String state);
+    List<Booking> findAllByBooker(long bookerId, State state);
 
     boolean checkForComment(long userId, long itemId);
+
 }

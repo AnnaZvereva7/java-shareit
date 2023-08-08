@@ -9,11 +9,10 @@ import ru.practicum.shareit.exception.Marker;
 import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
-import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.users.model.User;
+import ru.practicum.shareit.users.service.UserService;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
@@ -42,7 +41,7 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    public ItemDtoWithDate findById(@PathVariable long itemId, @RequestHeader(Constants.USERID) long userId) {
+    public ItemDtoWithDate findById(@PathVariable Long itemId, @RequestHeader(Constants.USERID) Long userId) {
         Item item = itemService.findById(itemId);
         ItemDtoWithDate itemDto = mapper.toItemDtoWithDate(item);
         itemDto = itemService.getCommentsForItem(itemDto);
@@ -54,7 +53,7 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<ItemDtoWithDate> findAllByUser(@RequestHeader("X-Sharer-User-Id") long userId) {
+    public List<ItemDtoWithDate> findAllByUser(@RequestHeader("X-Sharer-User-Id") Long userId) {
         List<ItemDtoWithDate> itemsDto = itemService.findAllByUser(userId)
                 .stream()
                 .map(mapper::toItemDtoWithDate)
@@ -66,23 +65,23 @@ public class ItemController {
 
     @PostMapping
     @Validated(Marker.OnCreate.class)
-    public ItemDto save(@RequestBody @Valid ItemDto itemDto, @RequestHeader("X-Sharer-User-Id") long userId) {
+    public ItemDto save(@RequestBody @Valid ItemDto itemDto, @RequestHeader("X-Sharer-User-Id") Long userId) {
         return mapper.toItemDto(itemService.save(mapper.fromItemDto(itemDto), userId));
     }
 
     @PatchMapping("/{itemId}")
     @Validated(Marker.OnUpdate.class)
     public ItemDto update(@RequestBody @Valid ItemDto itemDto,
-                          @RequestHeader("X-Sharer-User-Id") long userId,
-                          @PathVariable long itemId) {
+                          @RequestHeader("X-Sharer-User-Id") Long userId,
+                          @PathVariable Long itemId) {
         Item updatedItem = itemService.update(itemDto, itemId, userId);
         return mapper.toItemDto(updatedItem);
     }
 
     @GetMapping("/search")
     public List<ItemDto> findByText(@RequestParam(defaultValue = "") String text) {
-        if (text.equals("")) {
-            return new ArrayList<>();
+        if (text.isBlank()) {
+            return List.of();
         } else {
             return itemService.findByText(text.toLowerCase())
                     .stream()
@@ -92,9 +91,9 @@ public class ItemController {
     }
 
     @PostMapping("/{itemId}/comment")
-    public CommentDtoResponse addComment(@PathVariable long itemId,
+    public CommentDtoResponse addComment(@PathVariable Long itemId,
                                          @RequestBody @Valid CommentDtoRequest commentDto,
-                                         @RequestHeader(Constants.USERID) long userId) {
+                                         @RequestHeader(Constants.USERID) Long userId) {
         User author = userService.findById(userId);
         Item item = itemService.findById(itemId);
         bookingService.checkForComment(userId, itemId);
