@@ -1,6 +1,5 @@
 package ru.practicum.shareit.booking.service;
 
-import jdk.jshell.Snippet;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingDtoRequest;
@@ -17,7 +16,6 @@ import ru.practicum.shareit.users.service.UserService;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class BookingServiceImpl implements BookingService {

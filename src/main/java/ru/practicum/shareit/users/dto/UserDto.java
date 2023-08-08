@@ -1,7 +1,6 @@
 package ru.practicum.shareit.users.dto;
 
 import lombok.*;
-import org.springframework.validation.annotation.Validated;
 import ru.practicum.shareit.exception.Marker;
 
 import javax.validation.constraints.Email;

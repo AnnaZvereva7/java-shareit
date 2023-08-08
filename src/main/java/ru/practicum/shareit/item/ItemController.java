@@ -45,7 +45,7 @@ public class ItemController {
         Item item = itemService.findById(itemId);
         ItemDtoWithDate itemDto = mapper.toItemDtoWithDate(item);
         itemDto = itemService.getCommentsForItem(itemDto);
-        if (item.getOwnerId() == userId) {
+        if (item.getOwnerId().equals(userId)) {
             return (itemService.lastNextBookingForItem(List.of(itemDto))).get(0);
         } else {
             return itemDto;

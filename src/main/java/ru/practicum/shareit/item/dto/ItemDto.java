@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.validation.annotation.Validated;
 import ru.practicum.shareit.exception.Marker;
 
 import javax.validation.constraints.NotBlank;

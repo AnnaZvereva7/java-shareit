@@ -41,7 +41,7 @@ class BookingControllerTest {
         //given
         String state = "UNSUPPORTED_STATUS";
         //when
-        mvc.perform(get("/owner")
+        mvc.perform(get("/bookings/owner")
                         .header(Constants.USERID, 1L)
                         .param("state", state))
                 //then
