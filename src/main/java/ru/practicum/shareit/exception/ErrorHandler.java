@@ -22,15 +22,24 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String, String> limitAccess(LimitAccessException e) {
-        log.debug("Получен статус 404 Not found {}", e.getMessage(), e);
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> uniqueEmail(MethodArgumentNotValidException e) {
+        log.debug("Получен статус 400 Bad request {}", e.getMessage(), e);
         return Map.of("error", e.getMessage());
     }
 
-    @ExceptionHandler
+    @ExceptionHandler(value = {WrongStatusException.class,
+            NotAvailableException.class})
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> badRequestException(RuntimeException e) {
+        log.debug("Получен статус 400 Bad request {}", e.getMessage(), e);
+        return Map.of("error", e.getMessage());
+    }
+
+    @ExceptionHandler(value = {LimitAccessException.class,
+            NotFoundException.class})
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String, String> notFound(NotFoundException e) {
+    public Map<String, String> notFoundException(RuntimeException e) {
         log.debug("Получен статус 404 Not found {}", e.getMessage(), e);
         return Map.of("error", e.getMessage());
     }
@@ -42,18 +51,11 @@ public class ErrorHandler {
         return Map.of("error", e.getMessage());
     }
 
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> uniqueEmail(MethodArgumentNotValidException e) {
-        log.debug("Получен статус 400 Bad request {}", e.getMessage(), e);
-        return Map.of("error", e.getMessage());
-    }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public Map<String, String> otherException(Exception e) {
         log.debug("Получен статус 500 Internal server error {}", e.getMessage(), e);
-        e.printStackTrace();
         return Map.of("error", e.getMessage());
     }
 }

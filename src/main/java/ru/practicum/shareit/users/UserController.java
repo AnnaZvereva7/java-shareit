@@ -1,13 +1,12 @@
-package ru.practicum.shareit.user;
+package ru.practicum.shareit.users;
 
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.exception.Marker;
-import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.dto.UserMapper;
-import ru.practicum.shareit.user.service.UserService;
+import ru.practicum.shareit.users.dto.UserDto;
+import ru.practicum.shareit.users.dto.UserMapper;
+import ru.practicum.shareit.users.service.UserService;
 
-import javax.validation.Valid;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
@@ -25,25 +24,22 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    public UserDto findById(@PathVariable int userId) {
+    public UserDto findById(@PathVariable Long userId) {
         return mapper.toUserDto(userService.findById(userId));
     }
 
     @PostMapping
-    @Validated({Marker.OnCreate.class})
-    public UserDto save(@RequestBody @Valid UserDto userDto) {
+    public UserDto save(@RequestBody @Validated(Marker.OnCreate.class) UserDto userDto) {
         return mapper.toUserDto(userService.save(mapper.fromUserDto(userDto)));
     }
 
     @PatchMapping("/{userId}")
-    @Validated({Marker.OnUpdate.class})
-    public UserDto updatePartial(@PathVariable int userId, @RequestBody @Valid UserDto userDto) {
-        userDto.setId(userId);
-        return mapper.toUserDto(userService.updatePartial(mapper.fromUserDto(userDto)));
+    public UserDto update(@PathVariable Long userId, @RequestBody @Validated(Marker.OnUpdate.class) UserDto userDto) {
+        return mapper.toUserDto(userService.update(userId, userDto.getName(), userDto.getEmail()));
     }
 
     @DeleteMapping("/{userId}")
-    public void delete(@PathVariable int userId) {
+    public void delete(@PathVariable Long userId) {
         userService.delete(userId);
     }
 
