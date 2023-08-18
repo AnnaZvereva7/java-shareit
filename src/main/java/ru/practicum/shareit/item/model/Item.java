@@ -1,9 +1,6 @@
 package ru.practicum.shareit.item.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
@@ -14,10 +11,12 @@ import javax.validation.constraints.Size;
 @NoArgsConstructor
 @Entity
 @Table(name = "items")
+@EqualsAndHashCode
 public class Item {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    @EqualsAndHashCode.Exclude
+    private Long id;
     @Column(nullable = false)
     @Size(max = 50)
     private String name;
@@ -30,10 +29,11 @@ public class Item {
     @JoinColumn(name = "request_id")
     private Long requestId;
 
-    public Item(long id, String name, String description, Boolean available) {
+    public Item(Long id, String name, String description, Boolean available, Long itemRequestId) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.available = available;
+        this.requestId = itemRequestId;
     }
 }

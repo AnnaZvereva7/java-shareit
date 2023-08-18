@@ -8,15 +8,18 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-
-public interface BookingDtoForOwner {
-    Long getId();
-    Long getItemId();
-    Long getBookerId();
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class BookingDtoForOwnerImpl implements BookingDtoForOwner {
+    private Long id;
+    private Long itemId;
+    private Long bookerId;
     @JsonFormat
             (shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss")
-    LocalDateTime getStartDate();
+    private LocalDateTime startDate;
     @JsonFormat
             (shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss")
-    LocalDateTime getEndDate();
+    private LocalDateTime endDate;
 }

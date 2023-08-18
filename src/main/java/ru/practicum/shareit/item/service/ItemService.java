@@ -16,9 +16,9 @@ public interface ItemService {
 
     Item findById(long id);
 
-    List<Item> findAllByUser(long userId);
+    List<Item> findAllByUser(long userId, int from, int size);
 
-    List<Item> findByText(String text);
+    List<Item> findByText(String text, int from, int size);
 
     List<ItemDtoWithDate> lastNextBookingForItem(List<ItemDtoWithDate> itemsDto);
 

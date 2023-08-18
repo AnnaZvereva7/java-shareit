@@ -12,10 +12,13 @@ import ru.practicum.shareit.exception.LimitAccessException;
 import ru.practicum.shareit.exception.WrongStatusException;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
 @RequestMapping(path = "/bookings", produces = MediaType.APPLICATION_JSON_VALUE)
+@Validated
 public class BookingController {
     private final BookingService bookingService;
 
@@ -52,22 +55,28 @@ public class BookingController {
     }
 
     @GetMapping
+        //pagination
     List<Booking> findAllByBooker(@RequestHeader(Constants.USERID) Long userId,
-                                  @RequestParam(defaultValue = "ALL") String state) {
+                                  @RequestParam(defaultValue = "ALL") String state,
+                                  @RequestParam(defaultValue = "0") @PositiveOrZero int from,
+                                  @RequestParam(defaultValue = "20") @Positive int size) {
         try {
             State stateEnum = State.valueOf(state);
-            return bookingService.findAllByBooker(userId, stateEnum);
+            return bookingService.findAllByBooker(userId, stateEnum, from, size);
         } catch (IllegalArgumentException e) {
             throw new WrongStatusException("Unknown state: " + state);
         }
     }
 
     @GetMapping("/owner")
+        //pagination
     List<Booking> findAllByOwner(@RequestHeader(Constants.USERID) Long userId,
-                                 @RequestParam(defaultValue = "ALL") String state) {
+                                 @RequestParam(defaultValue = "ALL") String state,
+                                 @RequestParam(defaultValue = "0") @PositiveOrZero int from,
+                                 @RequestParam(defaultValue = "20") @Positive int size) {
         try {
             State stateEnum = State.valueOf(state);
-            return bookingService.findAllByOwner(userId, stateEnum);
+            return bookingService.findAllByOwner(userId, stateEnum, from, size);
         } catch (IllegalArgumentException e) {
             throw new WrongStatusException("Unknown state: " + state);
         }

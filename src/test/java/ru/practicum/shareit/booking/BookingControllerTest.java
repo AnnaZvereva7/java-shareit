@@ -36,8 +36,25 @@ class BookingControllerTest {
         mvc = MockMvcBuilders.standaloneSetup(bookingController).setControllerAdvice(ErrorHandler.class).build();
     }
 
+
     @Test
-    void findAllByOwner() throws Exception {
+    void create() {
+    }
+
+    @Test
+    void approval() {
+    }
+
+    @Test
+    void findById() {
+    }
+
+    @Test
+    void findAllByBooker() {
+    }
+
+    @Test
+    void findAllByOwner_whenStatusUnknown() throws Exception {
         //given
         String state = "UNSUPPORTED_STATUS";
         //when
@@ -47,5 +64,8 @@ class BookingControllerTest {
                 //then
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error", is("Unknown state: UNSUPPORTED_STATUS")));
+    }
+    @Test
+    void findAllByOwner() {
     }
 }

@@ -1,8 +1,9 @@
 package ru.practicum.shareit.item.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingDtoForOwner;
+import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.LimitAccessException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.CommentDto;
@@ -10,10 +11,12 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoWithDate;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.model.OffsetBasedPageRequest;
 import ru.practicum.shareit.item.repositiry.CommentsRepository;
 import ru.practicum.shareit.item.repositiry.ItemRepository;
 import ru.practicum.shareit.users.UserRepository;
 import ru.practicum.shareit.users.model.User;
+import ru.practicum.shareit.users.service.UserService;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -26,29 +29,17 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
 
 @Service
+@RequiredArgsConstructor
 public class ItemServiceImp implements ItemService {
     private final ItemRepository repository;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final BookingRepository bookingRepository;
     private final CommentsRepository commentsRepository;
 
-    public ItemServiceImp(ItemRepository repository,
-                          UserRepository userRepository,
-                          BookingRepository bookingRepository,
-                          CommentsRepository commentsRepository) {
-        this.repository = repository;
-        this.userRepository = userRepository;
-        this.bookingRepository = bookingRepository;
-        this.commentsRepository = commentsRepository;
-    }
-
     public Item save(Item item, long ownerId) {
-        if (userRepository.findById(ownerId).isEmpty()) {
-            throw new NotFoundException(User.class);
-        } else {
+        userService.findById(ownerId);
             item.setOwnerId(ownerId);
             return repository.saveAndFlush(item);
-        }
     }
 
     public Item update(ItemDto itemDto, long id, long userId) {
@@ -65,7 +56,7 @@ public class ItemServiceImp implements ItemService {
             }
             return repository.saveAndFlush(item);
         } else {
-            throw new LimitAccessException("to update");
+            throw new LimitAccessException("update");
         }
     }
 
@@ -82,15 +73,15 @@ public class ItemServiceImp implements ItemService {
         }
     }
 
-    public List<Item> findAllByUser(long userId) {
-        userRepository.findById(userId);
-        return repository.findByOwnerId(userId);
+    public List<Item> findAllByUser(long userId, int from, int size) {
+        userService.findById(userId);
+        return repository.findAllByOwnerId(userId, new OffsetBasedPageRequest(from, size));
     }
 
     @Override
     public List<ItemDtoWithDate> lastNextBookingForItem(List<ItemDtoWithDate> itemsDto) {
         List<Long> itemsId = itemsDto.stream()
-                .map(itemDtoWithDate -> itemDtoWithDate.getId())
+                .map(ItemDtoWithDate::getId)
                 .collect(toList());
         Map<Long, BookingDtoForOwner> lastBookings =
                 bookingRepository.findLastBookingForItem(itemsId, LocalDateTime.now())
@@ -108,8 +99,8 @@ public class ItemServiceImp implements ItemService {
     }
 
     @Override
-    public List<Item> findByText(String text) {
-        return repository.findByNameOrDescriptionContainingIgnoreCaseAndAvailableTrue(text, text);
+    public List<Item> findByText(String text, int from, int size) {
+        return repository.findByTextAndAvailableTrue(text, new OffsetBasedPageRequest(from, size));
     }
 
     @Override
@@ -126,7 +117,7 @@ public class ItemServiceImp implements ItemService {
     @Override
     public List<ItemDtoWithDate> getCommentsForItems(List<ItemDtoWithDate> items) {
         List<Long> itemsId = items.stream()
-                .map(itemDtoWithDate -> itemDtoWithDate.getId())
+                .map(ItemDtoWithDate::getId)
                 .collect(toList());
         List<CommentDto> comments = commentsRepository.findAllCommentsByItemsId(itemsId);
         Map<Long, List<CommentDto>> commentsByItem = new HashMap<>();

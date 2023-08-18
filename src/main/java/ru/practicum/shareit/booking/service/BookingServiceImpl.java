@@ -1,11 +1,15 @@
 package ru.practicum.shareit.booking.service;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingDtoRequest;
 import ru.practicum.shareit.booking.dto.BookingPeriod;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
+import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.booking.repository.BookingRepositoryImpl;
 import ru.practicum.shareit.exception.LimitAccessException;
 import ru.practicum.shareit.exception.NotAvailableException;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -14,22 +18,18 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.users.service.UserService;
 
+import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository repository;
+    private final BookingRepositoryImpl repositoryImpl;
     private final UserService userService;
     private final ItemService itemService;
-
-
-    public BookingServiceImpl(BookingRepository repository,
-                              UserService userService, ItemService itemService) {
-        this.repository = repository;
-        this.userService = userService;
-        this.itemService = itemService;
-    }
 
     @Override
     public Booking create(BookingDtoRequest bookingDto, long bookerId) {
@@ -83,7 +83,7 @@ public class BookingServiceImpl implements BookingService {
         } else {
             repository.changeStatus(bookingId, BookingStatus.REJECTED.toString());
         }
-        return repository.findById(bookingId);
+        return repository.findById(bookingId).get();
     }
 
     private boolean isStatusCorrect(long bookingId) {
@@ -109,46 +109,53 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Booking findById(long bookingId) {
-        return repository.findById(bookingId);
+        Optional<Booking> booking=repository.findById(bookingId);
+        if(booking.isEmpty()) {
+            throw new NotFoundException(Booking.class);
+        } else {
+         return booking.get();
+        }
     }
 
     @Override
-    public List<Booking> findAllByOwner(long ownerId, State state) {
+    public List<Booking> findAllByOwner(long ownerId, State state, int from, int size) {
         userService.findById(ownerId);
+        PageRequest pageRequest = PageRequest.of(from, size, Sort.by("startDate").descending());
         switch (state) {
             case ALL:
-                return repository.findAllByOwnerId(ownerId);
+                return repositoryImpl.findAllByOwnerId(ownerId, from, size);
             case PAST:
-                return repository.findPastByOwnerId(ownerId, LocalDateTime.now());
+                return repositoryImpl.findPastByOwnerId(ownerId, LocalDateTime.now(), from, size);
             case WAITING:
-                return repository.findByOwnerIdAndStatus(ownerId, BookingStatus.WAITING.name());
+                return repositoryImpl.findByOwnerIdAndStatus(ownerId, BookingStatus.WAITING, from, size);
             case REJECTED:
-                return repository.findByOwnerIdAndStatus(ownerId, BookingStatus.REJECTED.name());
+                return repositoryImpl.findByOwnerIdAndStatus(ownerId, BookingStatus.REJECTED, from, size);
             case CURRENT:
-                return repository.findCurrentByOwnerId(ownerId, LocalDateTime.now(), LocalDateTime.now());
+                return repositoryImpl.findCurrentByOwnerId(ownerId, LocalDateTime.now(), from, size);
             case FUTURE:
-                return repository.findFutureByOwnerId(ownerId, LocalDateTime.now());
+                return repositoryImpl.findFutureByOwnerId(ownerId, LocalDateTime.now(), from, size);
             default:
                 throw new RuntimeException("unknown state");
         }
     }
 
     @Override
-    public List<Booking> findAllByBooker(long bookerId, State state) {
+    @Transactional
+    public List<Booking> findAllByBooker(long bookerId, State state, int from, int size) {
         userService.findById(bookerId);
         switch (state) {
             case ALL:
-                return repository.findAllByBookerIdOrderByStartDateDesc(bookerId);
+                return repositoryImpl.findAllByBookerId(bookerId, from, size);
             case WAITING:
-                return repository.findAllByBookerIdAndStatusOrderByStartDateDesc(bookerId, BookingStatus.WAITING);
+                return repositoryImpl.findAllByBookerIdAndStatus(bookerId, BookingStatus.WAITING, from, size);
             case REJECTED:
-                return repository.findAllByBookerIdAndStatusOrderByStartDateDesc(bookerId, BookingStatus.REJECTED);
+                return repositoryImpl.findAllByBookerIdAndStatus(bookerId, BookingStatus.REJECTED, from, size);
             case FUTURE:
-                return repository.findAllByBookerIdAndStartDateAfterOrderByStartDateDesc(bookerId, LocalDateTime.now());
+                return repositoryImpl.findAllByBookerIdAndStartDateAfter(bookerId, LocalDateTime.now(), from, size);
             case PAST:
-                return repository.findAllByBookerIdAndEndDateBeforeOrderByStartDateDesc(bookerId, LocalDateTime.now());
+                return repositoryImpl.findAllByBookerIdAndEndDateBefore(bookerId, LocalDateTime.now(), from, size);
             case CURRENT:
-                return repository.findAllByBookerIdAndEndDateAfterAndStartDateBeforeOrderByStartDateDesc(bookerId, LocalDateTime.now(), LocalDateTime.now());
+                return repositoryImpl.findAllByBookerIdAndEndDateAfterAndStartDateBefore(bookerId, LocalDateTime.now(), from, size);
             default:
                 throw new RuntimeException("unknown state");
         }

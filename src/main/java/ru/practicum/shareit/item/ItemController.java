@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -9,10 +10,13 @@ import ru.practicum.shareit.exception.Marker;
 import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.request.ItemRequestService;
 import ru.practicum.shareit.users.model.User;
 import ru.practicum.shareit.users.service.UserService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
@@ -21,24 +25,15 @@ import static java.util.stream.Collectors.toList;
 @RequestMapping(value = "/items",
         produces = MediaType.APPLICATION_JSON_VALUE)
 @Validated
+@RequiredArgsConstructor
 public class ItemController {
     private final ItemService itemService;
     private final BookingService bookingService;
     private final ItemMapper mapper;
     private final UserService userService;
     private final CommentMapper commentMapper;
+    private final ItemRequestService itemRequestService;
 
-    public ItemController(ItemService itemService,
-                          BookingService bookingService,
-                          ItemMapper mapper,
-                          UserService userService,
-                          CommentMapper commentMapper) {
-        this.itemService = itemService;
-        this.bookingService = bookingService;
-        this.mapper = mapper;
-        this.userService = userService;
-        this.commentMapper = commentMapper;
-    }
 
     @GetMapping("/{itemId}")
     public ItemDtoWithDate findById(@PathVariable Long itemId, @RequestHeader(Constants.USERID) Long userId) {
@@ -53,8 +48,11 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<ItemDtoWithDate> findAllByUser(@RequestHeader("X-Sharer-User-Id") Long userId) {
-        List<ItemDtoWithDate> itemsDto = itemService.findAllByUser(userId)
+    //pagination
+    public List<ItemDtoWithDate> findAllByUser(@RequestHeader(Constants.USERID) Long userId,
+                                               @RequestParam(defaultValue = "0") @PositiveOrZero int from,
+                                               @RequestParam(defaultValue = "20") @Positive int size) {
+        List<ItemDtoWithDate> itemsDto = itemService.findAllByUser(userId, from, size)
                 .stream()
                 .map(mapper::toItemDtoWithDate)
                 .collect(toList());
@@ -64,8 +62,7 @@ public class ItemController {
     }
 
     @PostMapping
-    @Validated(Marker.OnCreate.class)
-    public ItemDto save(@RequestBody @Valid ItemDto itemDto, @RequestHeader("X-Sharer-User-Id") Long userId) {
+    public ItemDto save(@RequestBody @Validated(Marker.OnCreate.class) ItemDto itemDto, @RequestHeader(Constants.USERID) Long userId) {
         return mapper.toItemDto(itemService.save(mapper.fromItemDto(itemDto), userId));
     }
 
@@ -79,11 +76,14 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<ItemDto> findByText(@RequestParam(defaultValue = "") String text) {
+    //pagination
+    public List<ItemDto> findByText(@RequestParam(defaultValue = "") String text,
+                                    @RequestParam(defaultValue = "0") @PositiveOrZero int from,
+                                    @RequestParam(defaultValue = "20") @Positive int size) {
         if (text.isBlank()) {
             return List.of();
         } else {
-            return itemService.findByText(text.toLowerCase())
+            return itemService.findByText(text.toLowerCase(), from, size)
                     .stream()
                     .map(mapper::toItemDto)
                     .collect(toList());
@@ -99,6 +99,4 @@ public class ItemController {
         bookingService.checkForComment(userId, itemId);
         return commentMapper.toCommentDto(itemService.addComment(commentMapper.toComment(commentDto, item, author)));
     }
-
-
 }
