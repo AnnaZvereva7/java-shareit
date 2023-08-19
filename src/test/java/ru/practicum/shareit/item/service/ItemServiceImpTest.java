@@ -10,20 +10,15 @@ import ru.practicum.shareit.booking.dto.BookingDtoForOwnerImpl;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.LimitAccessException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.item.dto.CommentDto;
-import ru.practicum.shareit.item.dto.CommentDtoImpl;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemDtoWithDate;
+import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.OffsetBasedPageRequest;
 import ru.practicum.shareit.item.repositiry.CommentsRepository;
 import ru.practicum.shareit.item.repositiry.ItemRepository;
-import ru.practicum.shareit.users.UserRepository;
 import ru.practicum.shareit.users.model.User;
 import ru.practicum.shareit.users.service.UserService;
 
-import javax.validation.constraints.NotBlank;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -33,8 +28,8 @@ import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 class ItemServiceImpTest {
@@ -47,13 +42,19 @@ class ItemServiceImpTest {
     private BookingRepository bookingRepository;
     @Mock
     private CommentsRepository commentsRepository;
+    @Mock
+    private ItemMapper mapper;
 
     private ItemServiceImp service;
+    private Clock clock;
 
     @BeforeEach
     public void before() {
+        clock = Clock.fixed(
+                Instant.parse("2023-08-14T10:15:30.00Z"),
+                ZoneId.of("UTC"));
         service = new ItemServiceImp(repository, userService,
-                bookingRepository, commentsRepository);
+                bookingRepository, commentsRepository, mapper, clock);
     }
 
     @Test
@@ -187,14 +188,9 @@ class ItemServiceImpTest {
         BookingDtoForOwner nextBooking1 = new BookingDtoForOwnerImpl(1L, 1L, 1L, LocalDateTime.of(2023, 8, 18, 12, 30),
                 LocalDateTime.of(2023, 8, 19, 12, 30));
 
-        Clock clock = Clock.fixed(Instant.parse("2023-08-14T10:15:30.00Z"), ZoneId.of("UTC"));
-        LocalDateTime dateTime = LocalDateTime.now(clock);
-        mockStatic(LocalDateTime.class);
-        when(LocalDateTime.now()).thenReturn(dateTime);
-
-        when(bookingRepository.findLastBookingForItem(List.of(itemDto.getId()), LocalDateTime.now()))
+        when(bookingRepository.findLastBookingForItem(List.of(itemDto.getId()), LocalDateTime.now(clock)))
                 .thenReturn(List.of(lastBooking1));
-        when(bookingRepository.findNextBookingForItems(List.of(itemDto.getId()), LocalDateTime.now()))
+        when(bookingRepository.findNextBookingForItems(List.of(itemDto.getId()), LocalDateTime.now(clock)))
                 .thenReturn(List.of(nextBooking1));
 
         List<ItemDtoWithDate> actualItemsDto = service.lastNextBookingForItem(List.of(itemDto));
@@ -220,13 +216,13 @@ class ItemServiceImpTest {
     @Test
     void findByText() {
         Item item = new Item(1L, "name", "Description", true, 1L, null);
-       String text="descr";
+        String text = "descr";
         when(repository.findByTextAndAvailableTrue(anyString(), any(OffsetBasedPageRequest.class))).thenReturn(List.of(item));
-    List<Item> expectedItems = List.of(item);
-    List<Item> actualItems= service.findByText(text, 0, 20);
+        List<Item> expectedItems = List.of(item);
+        List<Item> actualItems = service.findByText(text, 0, 20);
 
-    assertEquals(1, actualItems.size());
-    assertEquals(expectedItems.get(0), actualItems.get(0));
+        assertEquals(1, actualItems.size());
+        assertEquals(expectedItems.get(0), actualItems.get(0));
 
     }
 
@@ -243,9 +239,9 @@ class ItemServiceImpTest {
     void getCommentsForItem() {
         CommentDto comment = new CommentDtoImpl();
         ItemDtoWithDate item = new ItemDtoWithDate(1L, "name1", "description1", true, null, null, null);
-    when(commentsRepository.findAllCommentsByItemsId(List.of(1L))).thenReturn(List.of(comment));
-    ItemDtoWithDate actualItem = service.getCommentsForItem(item);
-    assertEquals(List.of(comment), actualItem.getComments());
+        when(commentsRepository.findAllCommentsByItemsId(List.of(1L))).thenReturn(List.of(comment));
+        ItemDtoWithDate actualItem = service.getCommentsForItem(item);
+        assertEquals(List.of(comment), actualItem.getComments());
     }
 
     @Test
@@ -260,6 +256,17 @@ class ItemServiceImpTest {
 
         assertEquals(List.of(comment1), actualItems.get(0).getComments());
         assertEquals(null, actualItems.get(1).getComments());
+    }
+
+    @Test
+    void findByRequestId() {
+        Item item = new Item(1L, "name", "Description", true, 1L, 1L);
+        ItemDto itemDto = new ItemDto(1L, "name", "Description", true, 1L);
+        when(repository.findByRequestIdIn(anyList())).thenReturn(List.of(item));
+        when(mapper.toItemDto(item)).thenReturn(itemDto);
+        List<ItemDto> itemsDto = service.findByRequestId(1L);
+        assertEquals(1, itemsDto.size());
+        assertEquals(itemDto, itemsDto.get(0));
 
     }
 }

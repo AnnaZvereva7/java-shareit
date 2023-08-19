@@ -1,115 +1,88 @@
 package ru.practicum.shareit.request;
 
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.data.domain.Sort;
+import org.springframework.test.context.jdbc.Sql;
+import ru.practicum.shareit.item.model.OffsetBasedPageRequest;
 import ru.practicum.shareit.request.repository.ItemRequestRepository;
-import ru.practicum.shareit.request.repository.ItemRequestRepositoryImpl;
-import ru.practicum.shareit.users.UserRepository;
-import ru.practicum.shareit.users.model.User;
 
-import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @DataJpaTest
+@Sql({"/schemaTest.sql", "/import_tables.sql"})
 class ItemRequestRepositoryTest {
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Autowired
     private ItemRequestRepository repository;
-    @Autowired
-    private ItemRequestRepositoryImpl repositoryImpl;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private TestEntityManager em;
-
-    private User user1 = new User(null, "name", "email@mail.ru");
-    private User user2 = new User(null, "name2", "email2@mail.ru");
-    private ItemRequest request1 = new ItemRequest(null, "description", user1, LocalDateTime.of(2023, 8, 2, 11, 30));
-    private ItemRequest request2 = new ItemRequest(null, "description2", user1, LocalDateTime.of(2023, 8, 1, 11, 30));
-    private ItemRequest request3 = new ItemRequest(null, "description2", user1, LocalDateTime.of(2023, 7, 21, 11, 30));
-
-    @BeforeEach
-    void usersSepUp() {
-        user1 = userRepository.save(user1);
-        user2 = userRepository.save(user2);
-        userRepository.flush();
-        request1.setRequestor(user1);
-        request2.setRequestor(user1);
-        request3.setRequestor(user1);
-    }
-
-    @AfterEach
-    void deleteRequests() {
-        repository.deleteAll();
-        userRepository.deleteAll();
-
-    }
-
 
     @Test
     void findByRequestorId_whenEmpty() {
-
-        List<ItemRequest> requestList = repository.findByRequestorId(user1.getId(),
-                Sort.by(Sort.Direction.DESC, "created"));
-
-        assertThat(requestList == null);
+        List<ItemRequest> requestList = repository.findByRequestorId(1L);
+        assertEquals(0, requestList.size());
     }
 
     @Test
     void findByRequestorId_when1Request() {
-        request1 = repository.save(request1);
-        List<ItemRequest> requestList = repository.findByRequestorId(user1.getId(),
-                Sort.by(Sort.Direction.DESC, "created"));
+        List<ItemRequest> requestList = repository.findByRequestorId(3L);
 
         assertThat(requestList.size() == 1);
-        assertThat(requestList.get(0).getId()).isEqualTo(request1.getId());
-        assertThat(requestList.get(0).getDescription()).isEqualTo(request1.getDescription());
-        assertThat(requestList.get(0).getRequestor()).isEqualTo(user1);
-        assertThat(requestList.get(0).getCreated()).isEqualTo(request1.getCreated());
+        assertThat(requestList.get(0).getId()).isEqualTo(3L);
+        assertThat(requestList.get(0).getDescription()).isEqualTo("ItemDescription3");
+        assertThat(requestList.get(0).getRequestor().getId()).isEqualTo(3L);
+        assertThat(requestList.get(0).getCreated().format(FORMATTER)).isEqualTo("2023-07-01 11:30:00");
     }
 
     @Test
     void findByRequestorId_whenSorted() {
-        request1 = repository.save(request1);
-        request2 = repository.save(request2);
-        List<ItemRequest> requestList = repository.findByRequestorId(user1.getId(),
-                Sort.by(Sort.Direction.DESC, "created"));
+        List<ItemRequest> requestList = repository.findByRequestorId(2L);
 
         assertThat(requestList.size() == 2);
-        assertThat(requestList.get(0).getId()).isEqualTo(request1.getId());
-        assertThat(requestList.get(0).getDescription()).isEqualTo(request1.getDescription());
-        assertThat(requestList.get(0).getRequestor()).isEqualTo(user1);
-        assertThat(requestList.get(0).getCreated()).isEqualTo(request1.getCreated());
-        assertThat(requestList.get(1).getId()).isEqualTo(request2.getId());
-        assertThat(requestList.get(1).getDescription()).isEqualTo(request2.getDescription());
-        assertThat(requestList.get(1).getRequestor()).isEqualTo(user1);
-        assertThat(requestList.get(1).getCreated()).isEqualTo(request2.getCreated());
+        assertThat(requestList.get(0).getId()).isEqualTo(2L);
+        assertThat(requestList.get(0).getDescription()).isEqualTo("ItemDescription2");
+        assertThat(requestList.get(0).getRequestor().getId()).isEqualTo(2L);
+        assertThat(requestList.get(0).getCreated().format(FORMATTER)).isEqualTo("2023-08-10 11:30:00");
+        assertThat(requestList.get(1).getId()).isEqualTo(1L);
+        assertThat(requestList.get(1).getDescription()).isEqualTo("ItemDescription1");
+        assertThat(requestList.get(1).getRequestor().getId()).isEqualTo(2L);
+        assertThat(requestList.get(1).getCreated().format(FORMATTER)).isEqualTo("2023-08-01 11:30:00");
     }
 
     @Test
     void findAll_whenNotOwner() {
-        request1 = repository.save(request1);
-        request2 = repository.save(request2);
-        request3 = repository.save(request3);
         //from 1 size 2 result request2 and3
-        List<ItemRequest> requests = repositoryImpl.findByRequestorIdNot(user2.getId(), 1,2);
+        List<ItemRequest> requests = repository.findByRequestorIdNot(1L, new OffsetBasedPageRequest(1, 2));
         assertEquals(2, requests.size());
-        assertEquals(request2, requests.get(0));
-        assertEquals(request3, requests.get(1));
+        assertEquals(1L, requests.get(0).getId());
+        assertEquals(3L, requests.get(1).getId());
     }
+
     @Test
     void findAll_whenOwner() {
-        request1 = repository.save(request1);
-        request2 = repository.save(request2);
+        List<ItemRequest> requests = repository.findByRequestorIdNot(2L, new OffsetBasedPageRequest(0, 2));
+        assertEquals(1, requests.size());
+        assertEquals(3L, requests.get(0).getId());
+    }
 
-        List<ItemRequest> requests = repositoryImpl.findByRequestorIdNot(1L, 0,2);
-        assertEquals(0, requests.size());
+    @Test
+    void findById_whenWrong() {
+        Optional<ItemRequest> itemRequest = repository.findById(4L);
+        assertThat(itemRequest).isEmpty();
+    }
+
+    @Test
+    void findById_whenOk() {
+        Optional<ItemRequest> itemRequest = repository.findById(1L);
+        assertThat(itemRequest).isPresent();
+        assertEquals(1L, itemRequest.get().getId());
+        assertEquals("ItemDescription1", itemRequest.get().getDescription());
+        assertEquals("2023-08-01 11:30:00", itemRequest.get().getCreated().format(FORMATTER));
     }
 
 }

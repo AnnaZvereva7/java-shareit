@@ -1,90 +1,72 @@
 package ru.practicum.shareit.item.repositiry;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.jdbc.Sql;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.users.UserRepository;
 import ru.practicum.shareit.users.model.User;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @DataJpaTest
 class CommentsRepositoryTest {
     @Autowired
-    private ItemRepository itemRepository;
-
-    @Autowired
     private CommentsRepository repository;
 
-    @Autowired
-    private UserRepository userRepository;
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    LocalDateTime now=LocalDateTime.now();
-    private User user1 = new User(null, "name", "email@mail.ru");
-    private Item item1 = new Item(null, "name", "Description", true, 1L, null);
-    private Item item2 = new Item(null, "name2", "description2", false, 1L, null);
-    private Comment comment1= new Comment(null, "text1", item1, user1, now.minusDays(2));
-    private Comment comment2= new Comment(null, "text2", item2, user1, now.minusDays(4));
-    private Comment comment3= new Comment(null, "text3", item1, user1, now.minusDays(1));
+    @Test
+    @Sql({"/schemaTest.sql", "/import_tables.sql"})
+    void findAllCommentsByItemsId() {
+        LocalDateTime createdTime = LocalDateTime.of(2023, 8, 10, 12, 0);
+        List<CommentDto> comments = repository.findAllCommentsByItemsId(List.of(1L));
+        assertEquals(2, comments.size());
+        assertEquals(1L, comments.get(0).getId());
+        assertEquals(1L, comments.get(0).getItemId());
+        assertEquals("name2", comments.get(0).getAuthorName());
+        assertEquals("text1", comments.get(0).getText());
+        assertEquals(createdTime.minusDays(2), comments.get(0).getCreated());
 
-    @BeforeEach
-    void setup() {
-        user1=userRepository.save(user1);
-        item1.setOwnerId(user1.getId());
-        item2.setOwnerId(user1.getId());
-        item1=itemRepository.save(item1);
-        item2=itemRepository.save(item2);
-        comment1.setItem(item1);
-        comment2.setItem(item2);
-        comment3.setItem(item1);
-        comment1.setAuthor(user1);
-        comment2.setAuthor(user1);
-        comment3.setAuthor(user1);
-    }
-    @AfterEach
-    void delete() {
-        repository.deleteAll();
-        itemRepository.deleteAll();
-        userRepository.deleteAll();
+        assertEquals(3L, comments.get(1).getId());
+        assertEquals(1L, comments.get(1).getItemId());
+        assertEquals("name2", comments.get(1).getAuthorName());
+        assertEquals("text3", comments.get(1).getText());
+        assertEquals(createdTime.minusDays(1), comments.get(1).getCreated());
+
+        comments = repository.findAllCommentsByItemsId(List.of(1L, 2L));
+        assertEquals(3, comments.size());
+        assertEquals(2L, comments.get(0).getId());
+        assertEquals(1L, comments.get(1).getId());
+        assertEquals(3L, comments.get(2).getId());
     }
 
     @Test
-    void findAllCommentsByItemsId() {
-        List<CommentDto> comments = repository.findAllCommentsByItemsId(List.of(item1.getId()));
+    @Sql({"/schemaTest.sql"})
+    void findAllCommentsByItemsId_wHenEmpty() {
+        List<CommentDto> comments = repository.findAllCommentsByItemsId(List.of(1L));
         assertEquals(0, comments.size());
-
-        repository.save(comment1);
-        repository.save(comment2);
-        repository.save(comment3);
-
-        comments = repository.findAllCommentsByItemsId(List.of(item1.getId()));
-        assertEquals(2, comments.size());
-        assertEquals(comment1.getId(), comments.get(0).getId());
-        assertEquals(comment1.getItem().getId(), comments.get(0).getItemId());
-        assertEquals(comment1.getAuthor().getName(), comments.get(0).getAuthorName());
-        assertEquals(comment1.getText(), comments.get(0).getText());
-        assertEquals(comment1.getCreated(), comments.get(0).getCreated());
-
-        assertEquals(comment3.getId(), comments.get(1).getId());
-        assertEquals(comment3.getItem().getId(), comments.get(1).getItemId());
-        assertEquals(comment3.getAuthor().getName(), comments.get(1).getAuthorName());
-        assertEquals(comment3.getText(), comments.get(1).getText());
-        assertEquals(comment3.getCreated(), comments.get(1).getCreated());
-
-        comments = repository.findAllCommentsByItemsId(List.of(item1.getId(), item2.getId()));
-        assertEquals(3, comments.size());
-        assertEquals(comment2.getId(), comments.get(0).getId());
-        assertEquals(comment1.getId(), comments.get(1).getId());
-        assertEquals(comment3.getId(), comments.get(2).getId());
-
-
     }
+
+    @Test
+    @Sql({"/schemaTest.sql", "/import_tables.sql"})
+    void save() {
+        LocalDateTime createdTime = LocalDateTime.of(2023, 8, 10, 12, 0);
+        Item item = new Item(1L, "name", "Description", true, null);
+        User user = new User(3L, "name3", "email3@mail.ru");
+        Comment comment = new Comment(null, "textNew", item, user, createdTime);
+        Comment actualComment = repository.saveAndFlush(comment);
+        assertEquals(4L, actualComment.getId());
+        assertEquals("textNew", actualComment.getText());
+        assertEquals(1L, actualComment.getItem().getId());
+        assertEquals(3L, actualComment.getAuthor().getId());
+        assertEquals("2023-08-10 12:00:00", actualComment.getCreated().format(FORMATTER));
+    }
+
 }

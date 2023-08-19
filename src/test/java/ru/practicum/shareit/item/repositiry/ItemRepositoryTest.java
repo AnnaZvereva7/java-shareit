@@ -17,7 +17,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @DataJpaTest
-
 class ItemRepositoryTest {
     @Autowired
     private ItemRepository repository;
@@ -30,14 +29,14 @@ class ItemRepositoryTest {
     @Test
     @Sql({"/schemaTest.sql"})
     void findByOwnerId_whenEmpty() {
-        List<Item> items = repository.findAllByOwnerId(1, new OffsetBasedPageRequest(0,20));
+        List<Item> items = repository.findAllByOwnerId(1, new OffsetBasedPageRequest(0, 20));
         assertThat(items).isEqualTo(List.of());
     }
 
     @Test
     @Sql({"/schemaTest.sql", "/import_tables.sql"})
     void findByOwnerId_whenAll() {
-        List<Item> items = repository.findAllByOwnerId(1L, new OffsetBasedPageRequest(0,20));
+        List<Item> items = repository.findAllByOwnerId(1L, new OffsetBasedPageRequest(0, 20));
         assertThat(items.size()).isEqualTo(3);
         assertThat(items.get(0)).isEqualTo(item1);
         assertThat(items.get(1)).isEqualTo(item2);
@@ -47,7 +46,7 @@ class ItemRepositoryTest {
     @Test
     @Sql({"/schemaTest.sql", "/import_tables.sql"})
     void findByOwnerId_whenFrom1Size2() {
-        List<Item> items = repository.findAllByOwnerId(1, new OffsetBasedPageRequest(1,1));
+        List<Item> items = repository.findAllByOwnerId(1, new OffsetBasedPageRequest(1, 1));
         assertEquals(items.size(), 1);
         assertEquals(items.get(0), item2);
     }
@@ -57,7 +56,7 @@ class ItemRepositoryTest {
     @Sql({"/schemaTest.sql"})
     void findByText_whenEmpty() {
         List<Item> items = repository.findByTextAndAvailableTrue("description",
-                new OffsetBasedPageRequest(0,20));
+                new OffsetBasedPageRequest(0, 20));
         assertThat(items).isEqualTo(List.of());
     }
 
@@ -65,7 +64,7 @@ class ItemRepositoryTest {
     @Sql({"/schemaTest.sql", "/import_tables.sql"})
     void findByText_whenAll() {
         List<Item> items = repository.findByTextAndAvailableTrue("description",
-                new OffsetBasedPageRequest(0,20));
+                new OffsetBasedPageRequest(0, 20));
         assertEquals(items.size(), 2);
         assertEquals(items.get(0), item1);
         assertEquals(items.get(1), item3);
@@ -74,7 +73,7 @@ class ItemRepositoryTest {
     @Test
     @Sql({"/schemaTest.sql", "/import_tables.sql"})
     void findByText_whenFrom1Size2() {
-        List<Item> items = repository.findByTextAndAvailableTrue("description", new OffsetBasedPageRequest(1,2));
+        List<Item> items = repository.findByTextAndAvailableTrue("description", new OffsetBasedPageRequest(1, 2));
         assertThat(items.size()).isEqualTo(1);
         assertEquals(items.get(0), item3);
     }
@@ -98,7 +97,7 @@ class ItemRepositoryTest {
     @Test
     @Sql({"/schemaTest.sql", "/import_tables.sql"})
     void findByRequestIdIn_whenListOf2() {
-        List<Item> items = repository.findByRequestIdIn(List.of(1L,2L));
+        List<Item> items = repository.findByRequestIdIn(List.of(1L, 2L));
         assertEquals(3, items.size());
         assertEquals(item1, items.get(0));
         assertEquals(item2, items.get(1));
@@ -108,15 +107,15 @@ class ItemRepositoryTest {
     @Test
     @Sql({"/schemaTest.sql", "/import_tables.sql"})
     void save() {
-        assertEquals(3, repository.findAll().size());
-        Item item4 = new Item(4L, "name4", "description4", true, 1L, 2L);
-        repository.save(item4);
-        assertEquals(4, repository.findAll().size());
-        Optional<Item> found = repository.findById(4L);
+        assertEquals(6, repository.findAll().size());
+        Item item7 = new Item(7L, "name7", "description7", true, 1L, 2L);
+        repository.save(item7);
+        assertEquals(7, repository.findAll().size());
+        Optional<Item> found = repository.findById(7L);
         assertThat(found).isPresent();
-        assertEquals(4, found.get().getId());
-        assertEquals("name4", found.get().getName());
-        assertEquals("description4", found.get().getDescription());
+        assertEquals(7, found.get().getId());
+        assertEquals("name7", found.get().getName());
+        assertEquals("description7", found.get().getDescription());
         assertEquals(TRUE, found.get().getAvailable());
         assertEquals(1, found.get().getOwnerId());
         assertEquals(2, found.get().getRequestId());
@@ -126,7 +125,7 @@ class ItemRepositoryTest {
     @Sql({"/schemaTest.sql", "/import_tables.sql"})
     void delete() {
         repository.deleteById(3L);
-        assertEquals(2, repository.findAll().size());
+        assertEquals(5, repository.findAll().size());
 
         Throwable thrown = catchThrowable(() -> {
             repository.deleteById(8L);

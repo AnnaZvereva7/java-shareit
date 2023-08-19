@@ -42,14 +42,14 @@ public class BookingJsonTests {
     @Test
     public void testSerialize() throws Exception {
 
-        Booking booking = new Booking(1L, LocalDateTime.of(2023, 8,10,12,0),
-                LocalDateTime.of(2023,8,12,12,0), new Item(), new User(), BookingStatus.WAITING);
+        Booking booking = new Booking(1L, LocalDateTime.of(2023, 8, 10, 12, 0),
+                LocalDateTime.of(2023, 8, 12, 12, 0), new Item(), new User(), BookingStatus.WAITING);
 
         JsonContent<Booking> result = this.jsonBooking.write(booking);
 
         assertThat(result).extractingJsonPathNumberValue("$.id").isEqualTo(1);
-        assertThat(result).extractingJsonPathStringValue("$.start").isEqualTo("10-08-2023 12:00:00");
-        assertThat(result).extractingJsonPathStringValue("$.end").isEqualTo("12-08-2023 12:00:00");
+        assertThat(result).extractingJsonPathStringValue("$.start").isEqualTo("2023-08-10T12:00:00");
+        assertThat(result).extractingJsonPathStringValue("$.end").isEqualTo("2023-08-12T12:00:00");
 
         assertThat(result).extractingJsonPathStringValue("$.item.id").isEqualTo(null);
         assertThat(result).extractingJsonPathStringValue("$.item.name").isEqualTo(null);

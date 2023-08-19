@@ -1,14 +1,13 @@
 package ru.practicum.shareit.users.dto;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import ru.practicum.shareit.users.model.User;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class UserMapperTest {
 
-    UserMapper mapper= new UserMapper();
+    UserMapper mapper = new UserMapper();
 
     @Test
     void toUserDto() {
@@ -22,7 +21,7 @@ class UserMapperTest {
     @Test
     void fromUserDto() {
         UserDto userDto = new UserDto(1L, "name", "email@mail.ru");
-        User user=mapper.fromUserDto(userDto);
+        User user = mapper.fromUserDto(userDto);
         assertEquals(1L, user.getId());
         assertEquals("name", user.getName());
         assertEquals("email@mail.ru", user.getEmail());

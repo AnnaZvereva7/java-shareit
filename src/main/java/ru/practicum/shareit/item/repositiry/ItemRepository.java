@@ -18,6 +18,6 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
 
 
     @Query("SELECT i FROM Item i where i.ownerId=:userId ORDER BY i.id")
-   List<Item> findAllByOwnerId(long userId, OffsetBasedPageRequest request);
+    List<Item> findAllByOwnerId(long userId, OffsetBasedPageRequest request);
 }
 

@@ -1,13 +1,10 @@
 package ru.practicum.shareit.booking.service;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.powermock.modules.junit4.PowerMockRunner;
 import ru.practicum.shareit.booking.dto.BookingDtoRequest;
 import ru.practicum.shareit.booking.dto.BookingPeriod;
 import ru.practicum.shareit.booking.dto.BookingPeriodImpl;
@@ -15,8 +12,6 @@ import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.booking.repository.BookingRepositoryImpl;
-import ru.practicum.shareit.constant.Constants;
-import ru.practicum.shareit.constants.ConstantTest;
 import ru.practicum.shareit.exception.LimitAccessException;
 import ru.practicum.shareit.exception.NotAvailableException;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -26,7 +21,6 @@ import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.users.model.User;
 import ru.practicum.shareit.users.service.UserService;
 
-import java.awt.print.Book;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -36,11 +30,10 @@ import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
-//@RunWith(PowerMockRunner.class)
 class BookingServiceImplTest {
     @Mock
     private BookingRepository repository;
@@ -52,15 +45,19 @@ class BookingServiceImplTest {
     private ItemService itemService;
 
     private BookingServiceImpl service;
+    private Clock clock;
 
     @BeforeEach
     public void before() {
-        service = new BookingServiceImpl(repository, repositoryImpl, userService, itemService);
+        clock = Clock.fixed(
+                Instant.parse("2023-08-10T12:00:00.00Z"),
+                ZoneId.of("UTC"));
+        service = new BookingServiceImpl(repository, repositoryImpl, userService, itemService, clock);
     }
 
     @Test
     void create_whenItemWrong() {
-        LocalDateTime now = ConstantTest.NOW;
+        LocalDateTime now = LocalDateTime.now(clock);
         BookingDtoRequest bookingDto = new BookingDtoRequest(1L, now.plusDays(3), now.plusDays(5));
         when(itemService.findById(1L)).thenThrow(new NotFoundException(Item.class));
         Throwable thrown = catchThrowable(() -> {
@@ -73,7 +70,7 @@ class BookingServiceImplTest {
 
     @Test
     void create_whenBookerIsOwner() {
-        LocalDateTime now = ConstantTest.NOW;
+        LocalDateTime now = LocalDateTime.now(clock);
         BookingDtoRequest bookingDto = new BookingDtoRequest(1L, now.plusDays(3), now.plusDays(5));
         when(itemService.findById(1L)).thenReturn(new Item(1L, "itemName", "itemDescription", true, 2L, null));
 
@@ -87,7 +84,7 @@ class BookingServiceImplTest {
 
     @Test
     void create_whenItemNotAvailable() {
-        LocalDateTime now = ConstantTest.NOW;
+        LocalDateTime now = LocalDateTime.now(clock);
         BookingDtoRequest bookingDto = new BookingDtoRequest(1L, now.plusDays(3), now.plusDays(5));
         when(itemService.findById(1L)).thenReturn(new Item(1L, "itemName", "itemDescription", false, 2L, null));
 
@@ -101,17 +98,12 @@ class BookingServiceImplTest {
 
     @Test
     void create_whenBookingPeriodCross1() {
-        LocalDateTime now = ConstantTest.NOW;
+        LocalDateTime now = LocalDateTime.now(clock);
         BookingDtoRequest bookingDto = new BookingDtoRequest(1L, now.plusDays(3), now.plusDays(5));
         when(itemService.findById(1L)).thenReturn(new Item(1L, "itemName", "itemDescription", true, 2L, null));
         BookingPeriod period1 = new BookingPeriodImpl(now.minusDays(1), now.plusDays(1));
         BookingPeriod period2 = new BookingPeriodImpl(now.plusDays(4), now.plusDays(6));
         when(repository.findAllBookingPeriodsForItemId(1L, now)).thenReturn(List.of(period1, period2));
-
-        Clock clock = Clock.fixed(Instant.parse("2023-08-10T12:00:00.00Z"), ZoneId.of("UTC"));
-        LocalDateTime dateTime = LocalDateTime.now(clock);
-        mockStatic(LocalDateTime.class);
-        when(LocalDateTime.now()).thenReturn(dateTime);
 
         Throwable thrown = catchThrowable(() -> {
             service.create(bookingDto, 1L);
@@ -123,17 +115,12 @@ class BookingServiceImplTest {
 
     @Test
     void create_whenBookingPeriodCross2() {
-        LocalDateTime now = ConstantTest.NOW;
+        LocalDateTime now = LocalDateTime.now(clock);
         BookingDtoRequest bookingDto = new BookingDtoRequest(1L, now.plusDays(3), now.plusDays(5));
         when(itemService.findById(1L)).thenReturn(new Item(1L, "itemName", "itemDescription", true, 2L, null));
         BookingPeriod period1 = new BookingPeriodImpl(now.plusDays(2), now.plusDays(4));
         BookingPeriod period2 = new BookingPeriodImpl(now.plusDays(6), now.plusDays(7));
         when(repository.findAllBookingPeriodsForItemId(1L, now)).thenReturn(List.of(period1, period2));
-
-        Clock clock = Clock.fixed(Instant.parse("2023-08-10T12:00:00.00Z"), ZoneId.of("UTC"));
-        LocalDateTime dateTime = LocalDateTime.now(clock);
-        mockStatic(LocalDateTime.class);
-        when(LocalDateTime.now()).thenReturn(dateTime);
 
         Throwable thrown = catchThrowable(() -> {
             service.create(bookingDto, 1L);
@@ -145,17 +132,12 @@ class BookingServiceImplTest {
 
     @Test
     void create_whenBookingPeriodCross3() {
-        LocalDateTime now = ConstantTest.NOW;
+        LocalDateTime now = LocalDateTime.now(clock);
         BookingDtoRequest bookingDto = new BookingDtoRequest(1L, now.plusDays(3), now.plusDays(5));
         when(itemService.findById(1L)).thenReturn(new Item(1L, "itemName", "itemDescription", true, 2L, null));
         BookingPeriod period1 = new BookingPeriodImpl(now.plusDays(2), now.plusDays(4));
         BookingPeriod period2 = new BookingPeriodImpl(now.plusDays(4).plusHours(1), now.plusDays(7));
         when(repository.findAllBookingPeriodsForItemId(1L, now)).thenReturn(List.of(period1, period2));
-
-        Clock clock = Clock.fixed(Instant.parse("2023-08-10T12:00:00.00Z"), ZoneId.of("UTC"));
-        LocalDateTime dateTime = LocalDateTime.now(clock);
-        mockStatic(LocalDateTime.class);
-        when(LocalDateTime.now()).thenReturn(dateTime);
 
         Throwable thrown = catchThrowable(() -> {
             service.create(bookingDto, 1L);
@@ -167,7 +149,7 @@ class BookingServiceImplTest {
 
     @Test
     void create_whenBookingPeriodBetween() {
-        LocalDateTime now = ConstantTest.NOW;
+        LocalDateTime now = LocalDateTime.now(clock);
         Item item = new Item(1L, "itemName", "itemDescription", true, 2L, null);
         User booker = new User(1L, "userName", "email@mail.ru");
         BookingDtoRequest bookingDto = new BookingDtoRequest(1L, now.plusDays(3), now.plusDays(5));
@@ -176,11 +158,6 @@ class BookingServiceImplTest {
         BookingPeriod period2 = new BookingPeriodImpl(now.plusDays(6), now.plusDays(7));
         when(repository.findAllBookingPeriodsForItemId(1L, now)).thenReturn(List.of(period1, period2));
         when(userService.findById(1L)).thenReturn(booker);
-
-        Clock clock = ConstantTest.CLOCK;
-        LocalDateTime dateTime = LocalDateTime.now(clock);
-        when(LocalDateTime.now()).thenReturn(dateTime);
-
 
         Booking booking = new Booking(null, now.plusDays(3), now.plusDays(5), item, booker, BookingStatus.WAITING);
         Booking expectedBooking = new Booking(1L, now.plusDays(3), now.plusDays(5), item, booker, BookingStatus.WAITING);
@@ -198,7 +175,7 @@ class BookingServiceImplTest {
 
     @Test
     void create_whenBookingPeriodBefore() {
-        LocalDateTime now = ConstantTest.NOW;
+        LocalDateTime now = LocalDateTime.now(clock);
         Item item = new Item(1L, "itemName", "itemDescription", true, 2L, null);
         User booker = new User(1L, "userName", "email@mail.ru");
         BookingDtoRequest bookingDto = new BookingDtoRequest(1L, now.plusDays(3), now.plusDays(5));
@@ -206,11 +183,6 @@ class BookingServiceImplTest {
         BookingPeriod period2 = new BookingPeriodImpl(now.plusDays(6), now.plusDays(7));
         when(repository.findAllBookingPeriodsForItemId(1L, now)).thenReturn(List.of(period2));
         when(userService.findById(1L)).thenReturn(booker);
-
-        Clock clock = Clock.fixed(Instant.parse("2023-08-10T12:00:00.00Z"), ZoneId.of("UTC"));
-        LocalDateTime dateTime = LocalDateTime.now(clock);
-        mockStatic(LocalDateTime.class);
-        when(LocalDateTime.now()).thenReturn(dateTime);
 
         Booking booking = new Booking(null, now.plusDays(3), now.plusDays(5), item, booker, BookingStatus.WAITING);
         Booking expectedBooking = new Booking(1L, now.plusDays(3), now.plusDays(5), item, booker, BookingStatus.WAITING);
@@ -228,7 +200,7 @@ class BookingServiceImplTest {
 
     @Test
     void create_whenBookingPeriodAfter() {
-        LocalDateTime now = ConstantTest.NOW;
+        LocalDateTime now = LocalDateTime.now(clock);
         Item item = new Item(1L, "itemName", "itemDescription", true, 2L, null);
         User booker = new User(1L, "userName", "email@mail.ru");
         BookingDtoRequest bookingDto = new BookingDtoRequest(1L, now.plusDays(3), now.plusDays(5));
@@ -236,11 +208,6 @@ class BookingServiceImplTest {
         BookingPeriod period1 = new BookingPeriodImpl(now.plusDays(1), now.plusDays(2));
         when(repository.findAllBookingPeriodsForItemId(1L, now)).thenReturn(List.of(period1));
         when(userService.findById(1L)).thenReturn(booker);
-
-        Clock clock = Clock.fixed(Instant.parse("2023-08-10T12:00:00.00Z"), ZoneId.of("UTC"));
-        LocalDateTime dateTime = LocalDateTime.now(clock);
-        mockStatic(LocalDateTime.class);
-        when(LocalDateTime.now()).thenReturn(dateTime);
 
         Booking booking = new Booking(null, now.plusDays(3), now.plusDays(5), item, booker, BookingStatus.WAITING);
         Booking expectedBooking = new Booking(1L, now.plusDays(3), now.plusDays(5), item, booker, BookingStatus.WAITING);
@@ -258,18 +225,13 @@ class BookingServiceImplTest {
 
     @Test
     void create_whenFirstBooking() {
-        LocalDateTime now = ConstantTest.NOW;
+        LocalDateTime now = LocalDateTime.now(clock);
         Item item = new Item(1L, "itemName", "itemDescription", true, 2L, null);
         User booker = new User(1L, "userName", "email@mail.ru");
         BookingDtoRequest bookingDto = new BookingDtoRequest(1L, now.plusDays(3), now.plusDays(5));
         when(itemService.findById(1L)).thenReturn(item);
         when(repository.findAllBookingPeriodsForItemId(1L, now)).thenReturn(List.of());
         when(userService.findById(1L)).thenReturn(booker);
-
-        Clock clock = Clock.fixed(Instant.parse("2023-08-10T12:00:00.00Z"), ZoneId.of("UTC"));
-        LocalDateTime dateTime = LocalDateTime.now(clock);
-        mockStatic(LocalDateTime.class);
-        when(LocalDateTime.now()).thenReturn(dateTime);
 
         Booking booking = new Booking(null, now.plusDays(3), now.plusDays(5), item, booker, BookingStatus.WAITING);
         Booking expectedBooking = new Booking(1L, now.plusDays(3), now.plusDays(5), item, booker, BookingStatus.WAITING);
@@ -287,16 +249,12 @@ class BookingServiceImplTest {
 
     @Test
     void create_whenWrongBooker() {
-        LocalDateTime now = ConstantTest.NOW;
+        LocalDateTime now = LocalDateTime.now(clock);
         Item item = new Item(1L, "itemName", "itemDescription", true, 2L, null);
         User booker = new User(1L, "userName", "email@mail.ru");
         BookingDtoRequest bookingDto = new BookingDtoRequest(1L, now.plusDays(3), now.plusDays(5));
         when(itemService.findById(1L)).thenReturn(item);
         when(repository.findAllBookingPeriodsForItemId(1L, now)).thenReturn(List.of());
-
-        Clock clock = ConstantTest.CLOCK;
-        LocalDateTime dateTime = LocalDateTime.now(clock);
-        when(LocalDateTime.now()).thenReturn(dateTime);
 
         when(userService.findById(1L)).thenThrow(new NotFoundException(User.class));
 
@@ -385,7 +343,7 @@ class BookingServiceImplTest {
 
     @Test
     void findById() {
-        LocalDateTime now = ConstantTest.NOW;
+        LocalDateTime now = LocalDateTime.now(clock);
         Booking booking = new Booking(1L, now.plusDays(1), now.plusDays(2), new Item(), new User(), BookingStatus.WAITING);
         when(repository.findById(1L)).thenReturn(Optional.of(booking));
         Booking actualBooking = service.findById(1L);
@@ -416,7 +374,7 @@ class BookingServiceImplTest {
 
     @Test
     void findAllByOwner_whenAll() {
-        LocalDateTime now = ConstantTest.NOW;
+        LocalDateTime now = LocalDateTime.now(clock);
         User owner = new User(1L, "name", "email@mail.ru");
         Booking booking1 = new Booking(1L, now.plusDays(1), now.plusDays(2), new Item(), new User(), BookingStatus.WAITING);
         Booking booking2 = new Booking(2L, now.plusDays(2), now.plusDays(3), new Item(), new User(), BookingStatus.APPROVED);
@@ -432,7 +390,7 @@ class BookingServiceImplTest {
 
     @Test
     void findAllByOwner_whenPast() {
-        LocalDateTime now = ConstantTest.NOW;
+        LocalDateTime now = LocalDateTime.now(clock);
         User owner = new User(1L, "name", "email@mail.ru");
         Booking booking1 = new Booking(1L, now.minusDays(2), now.minusDays(1), new Item(), new User(), BookingStatus.WAITING);
         Booking booking2 = new Booking(2L, now.minusDays(4), now.minusDays(3), new Item(), new User(), BookingStatus.APPROVED);
@@ -448,7 +406,7 @@ class BookingServiceImplTest {
 
     @Test
     void findAllByOwner_whenWaiting() {
-        LocalDateTime now = ConstantTest.NOW;
+        LocalDateTime now = LocalDateTime.now(clock);
         User owner = new User(1L, "name", "email@mail.ru");
         Booking booking1 = new Booking(1L, now.plusDays(1), now.plusDays(2), new Item(), new User(), BookingStatus.WAITING);
         Booking booking2 = new Booking(2L, now.plusDays(2), now.plusDays(3), new Item(), new User(), BookingStatus.WAITING);
@@ -464,7 +422,7 @@ class BookingServiceImplTest {
 
     @Test
     void findAllByOwner_whenRejected() {
-        LocalDateTime now = ConstantTest.NOW;
+        LocalDateTime now = LocalDateTime.now(clock);
         User owner = new User(1L, "name", "email@mail.ru");
         Booking booking1 = new Booking(1L, now.plusDays(1), now.plusDays(2), new Item(), new User(), BookingStatus.REJECTED);
         Booking booking2 = new Booking(2L, now.plusDays(2), now.plusDays(3), new Item(), new User(), BookingStatus.REJECTED);
@@ -480,7 +438,7 @@ class BookingServiceImplTest {
 
     @Test
     void findAllByOwner_whenCurrent() {
-        LocalDateTime now = ConstantTest.NOW;
+        LocalDateTime now = LocalDateTime.now(clock);
         User owner = new User(1L, "name", "email@mail.ru");
         Booking booking1 = new Booking(1L, now.minusDays(1), now.plusDays(2), new Item(), new User(), BookingStatus.WAITING);
         Booking booking2 = new Booking(2L, now.minusDays(2), now.plusDays(3), new Item(), new User(), BookingStatus.APPROVED);
@@ -496,7 +454,7 @@ class BookingServiceImplTest {
 
     @Test
     void findAllByOwner_whenFuture() {
-        LocalDateTime now = ConstantTest.NOW;
+        LocalDateTime now = LocalDateTime.now(clock);
         User owner = new User(1L, "name", "email@mail.ru");
         Booking booking1 = new Booking(1L, now.plusHours(1), now.plusDays(2), new Item(), new User(), BookingStatus.WAITING);
         Booking booking2 = new Booking(2L, now.plusDays(2), now.plusDays(3), new Item(), new User(), BookingStatus.APPROVED);
@@ -511,15 +469,155 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void findAllByBooker() {
+    void findAllByOwner_whenDefault() {
+        LocalDateTime now = LocalDateTime.now(clock);
+        User owner = new User(1L, "name", "email@mail.ru");
+        when(userService.findById(anyLong())).thenReturn(owner);
+
+        Throwable thrown = catchThrowable(() -> {
+            service.findAllByOwner(1L, null, 0, 20);
+        });
+
+        assertThat(thrown).isInstanceOf(RuntimeException.class);
     }
-    //юзер не найден
-    //на каждый кейс
 
     @Test
-    void checkForComment() {
-    }
-    //доступно для комментирования или нет
+    void findAllByBooker_whenWrongUser() {
+        when(userService.findById(anyLong())).thenThrow(new NotFoundException(User.class));
 
+        Throwable thrown = catchThrowable(() -> {
+            service.findAllByBooker(1L, State.ALL, 0, 20);
+        });
+
+        assertThat(thrown).isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void findAllByBooker_whenAll() {
+        LocalDateTime now = LocalDateTime.now(clock);
+        User booker = new User(1L, "name", "email@mail.ru");
+        Booking booking1 = new Booking(1L, now.plusDays(1), now.plusDays(2), new Item(), booker, BookingStatus.WAITING);
+        Booking booking2 = new Booking(2L, now.plusDays(2), now.plusDays(3), new Item(), booker, BookingStatus.APPROVED);
+        when(userService.findById(anyLong())).thenReturn(booker);
+        when(repositoryImpl.findAllByBookerId(1L, 0, 20)).thenReturn(List.of(booking1, booking2));
+
+        List<Booking> actualBookings = service.findAllByBooker(1L, State.ALL, 0, 20);
+
+        assertEquals(2, actualBookings.size());
+        assertEquals(booking1, actualBookings.get(0));
+        assertEquals(booking2, actualBookings.get(1));
+    }
+
+    @Test
+    void findAllByBooker_whenPast() {
+        LocalDateTime now = LocalDateTime.now(clock);
+        User booker = new User(1L, "name", "email@mail.ru");
+        Booking booking1 = new Booking(1L, now.minusDays(2), now.minusDays(1), new Item(), booker, BookingStatus.WAITING);
+        Booking booking2 = new Booking(2L, now.minusDays(4), now.minusDays(3), new Item(), booker, BookingStatus.APPROVED);
+        when(userService.findById(anyLong())).thenReturn(booker);
+        when(repositoryImpl.findAllByBookerIdAndEndDateBefore(1L, now, 0, 20)).thenReturn(List.of(booking1, booking2));
+
+        List<Booking> actualBookings = service.findAllByBooker(1L, State.PAST, 0, 20);
+
+        assertEquals(2, actualBookings.size());
+        assertEquals(booking1, actualBookings.get(0));
+        assertEquals(booking2, actualBookings.get(1));
+    }
+
+    @Test
+    void findAllByBooker_whenWaiting() {
+        LocalDateTime now = LocalDateTime.now(clock);
+        User booker = new User(1L, "name", "email@mail.ru");
+        Booking booking1 = new Booking(1L, now.plusDays(1), now.plusDays(2), new Item(), booker, BookingStatus.WAITING);
+        Booking booking2 = new Booking(2L, now.plusDays(2), now.plusDays(3), new Item(), booker, BookingStatus.WAITING);
+        when(userService.findById(anyLong())).thenReturn(booker);
+        when(repositoryImpl.findAllByBookerIdAndStatus(1L, BookingStatus.WAITING, 0, 20)).thenReturn(List.of(booking1, booking2));
+
+        List<Booking> actualBookings = service.findAllByBooker(1L, State.WAITING, 0, 20);
+
+        assertEquals(2, actualBookings.size());
+        assertEquals(booking1, actualBookings.get(0));
+        assertEquals(booking2, actualBookings.get(1));
+    }
+
+    @Test
+    void findAllByBooker_whenRejected() {
+        LocalDateTime now = LocalDateTime.now(clock);
+        User booker = new User(1L, "name", "email@mail.ru");
+        Booking booking1 = new Booking(1L, now.plusDays(1), now.plusDays(2), new Item(), booker, BookingStatus.REJECTED);
+        Booking booking2 = new Booking(2L, now.plusDays(2), now.plusDays(3), new Item(), booker, BookingStatus.REJECTED);
+        when(userService.findById(anyLong())).thenReturn(booker);
+        when(repositoryImpl.findAllByBookerIdAndStatus(1L, BookingStatus.REJECTED, 0, 20)).thenReturn(List.of(booking1, booking2));
+
+        List<Booking> actualBookings = service.findAllByBooker(1L, State.REJECTED, 0, 20);
+
+        assertEquals(2, actualBookings.size());
+        assertEquals(booking1, actualBookings.get(0));
+        assertEquals(booking2, actualBookings.get(1));
+    }
+
+    @Test
+    void findAllByBooker_whenCurrent() {
+        LocalDateTime now = LocalDateTime.now(clock);
+        User booker = new User(1L, "name", "email@mail.ru");
+        Booking booking1 = new Booking(1L, now.minusDays(1), now.plusDays(2), new Item(), booker, BookingStatus.WAITING);
+        Booking booking2 = new Booking(2L, now.minusDays(2), now.plusDays(3), new Item(), booker, BookingStatus.APPROVED);
+        when(userService.findById(anyLong())).thenReturn(booker);
+        when(repositoryImpl.findAllByBookerIdAndEndDateAfterAndStartDateBefore(1L, now, 0, 20)).thenReturn(List.of(booking1, booking2));
+
+        List<Booking> actualBookings = service.findAllByBooker(1L, State.CURRENT, 0, 20);
+
+        assertEquals(2, actualBookings.size());
+        assertEquals(booking1, actualBookings.get(0));
+        assertEquals(booking2, actualBookings.get(1));
+    }
+
+    @Test
+    void findAllByBooker_whenFuture() {
+        LocalDateTime now = LocalDateTime.now(clock);
+        User booker = new User(1L, "name", "email@mail.ru");
+        Booking booking1 = new Booking(1L, now.plusHours(1), now.plusDays(2), new Item(), booker, BookingStatus.WAITING);
+        Booking booking2 = new Booking(2L, now.plusDays(2), now.plusDays(3), new Item(), booker, BookingStatus.APPROVED);
+        when(userService.findById(anyLong())).thenReturn(booker);
+        when(repositoryImpl.findAllByBookerIdAndStartDateAfter(1L, now, 0, 20)).thenReturn(List.of(booking1, booking2));
+
+        List<Booking> actualBookings = service.findAllByBooker(1L, State.FUTURE, 0, 20);
+
+        assertEquals(2, actualBookings.size());
+        assertEquals(booking1, actualBookings.get(0));
+        assertEquals(booking2, actualBookings.get(1));
+    }
+
+    @Test
+    void findAllByBooker_whenDefault() {
+        LocalDateTime now = LocalDateTime.now(clock);
+        User booker = new User(1L, "name", "email@mail.ru");
+        when(userService.findById(anyLong())).thenReturn(booker);
+
+        Throwable thrown = catchThrowable(() -> {
+            service.findAllByBooker(1L, null, 0, 20);
+        });
+
+        assertThat(thrown).isInstanceOf(RuntimeException.class);
+    }
+
+    @Test
+    void checkForComment_whenOk() {
+        LocalDateTime now = LocalDateTime.now(clock);
+        when(repository.checkForComment(1L, 1L, now)).thenReturn(1);
+        assertEquals(true, service.checkForComment(1L, 1L));
+    }
+
+    @Test
+    void checkForComment_whenNotAvailable() {
+        LocalDateTime now = LocalDateTime.now(clock);
+        when(repository.checkForComment(1L, 2L, now)).thenThrow(new NotAvailableException("for comment"));
+
+        Throwable thrown = catchThrowable(() -> {
+            service.checkForComment(1L, 2L);
+        });
+
+        assertThat(thrown).isInstanceOf(NotAvailableException.class);
+    }
 
 }

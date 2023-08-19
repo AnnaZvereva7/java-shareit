@@ -1,5 +1,6 @@
 package ru.practicum.shareit.request.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,6 +17,7 @@ import java.util.List;
 public class ItemRequestDtoResponse {
     private Long id;
     private String description;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private LocalDateTime created;
     private List<ItemDto> items;
 }

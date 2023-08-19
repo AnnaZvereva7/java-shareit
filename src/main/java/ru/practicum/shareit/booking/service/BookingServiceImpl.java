@@ -19,6 +19,7 @@ import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.users.service.UserService;
 
 import javax.transaction.Transactional;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +31,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepositoryImpl repositoryImpl;
     private final UserService userService;
     private final ItemService itemService;
+    private final Clock clock;
 
     @Override
     public Booking create(BookingDtoRequest bookingDto, long bookerId) {
@@ -56,7 +58,7 @@ public class BookingServiceImpl implements BookingService {
         } else {
             LocalDateTime start = bookingDto.getStart();
             LocalDateTime end = bookingDto.getEnd();
-            List<BookingPeriod> periods = repository.findAllBookingPeriodsForItemId(itemId, LocalDateTime.now());
+            List<BookingPeriod> periods = repository.findAllBookingPeriodsForItemId(itemId, LocalDateTime.now(clock));
             if (periods.isEmpty()) {
                 return true;
             }
@@ -109,11 +111,11 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Booking findById(long bookingId) {
-        Optional<Booking> booking=repository.findById(bookingId);
-        if(booking.isEmpty()) {
+        Optional<Booking> booking = repository.findById(bookingId);
+        if (booking.isEmpty()) {
             throw new NotFoundException(Booking.class);
         } else {
-         return booking.get();
+            return booking.get();
         }
     }
 
@@ -125,15 +127,15 @@ public class BookingServiceImpl implements BookingService {
             case ALL:
                 return repositoryImpl.findAllByOwnerId(ownerId, from, size);
             case PAST:
-                return repositoryImpl.findPastByOwnerId(ownerId, LocalDateTime.now(), from, size);
+                return repositoryImpl.findPastByOwnerId(ownerId, LocalDateTime.now(clock), from, size);
             case WAITING:
                 return repositoryImpl.findByOwnerIdAndStatus(ownerId, BookingStatus.WAITING, from, size);
             case REJECTED:
                 return repositoryImpl.findByOwnerIdAndStatus(ownerId, BookingStatus.REJECTED, from, size);
             case CURRENT:
-                return repositoryImpl.findCurrentByOwnerId(ownerId, LocalDateTime.now(), from, size);
+                return repositoryImpl.findCurrentByOwnerId(ownerId, LocalDateTime.now(clock), from, size);
             case FUTURE:
-                return repositoryImpl.findFutureByOwnerId(ownerId, LocalDateTime.now(), from, size);
+                return repositoryImpl.findFutureByOwnerId(ownerId, LocalDateTime.now(clock), from, size);
             default:
                 throw new RuntimeException("unknown state");
         }
@@ -151,11 +153,11 @@ public class BookingServiceImpl implements BookingService {
             case REJECTED:
                 return repositoryImpl.findAllByBookerIdAndStatus(bookerId, BookingStatus.REJECTED, from, size);
             case FUTURE:
-                return repositoryImpl.findAllByBookerIdAndStartDateAfter(bookerId, LocalDateTime.now(), from, size);
+                return repositoryImpl.findAllByBookerIdAndStartDateAfter(bookerId, LocalDateTime.now(clock), from, size);
             case PAST:
-                return repositoryImpl.findAllByBookerIdAndEndDateBefore(bookerId, LocalDateTime.now(), from, size);
+                return repositoryImpl.findAllByBookerIdAndEndDateBefore(bookerId, LocalDateTime.now(clock), from, size);
             case CURRENT:
-                return repositoryImpl.findAllByBookerIdAndEndDateAfterAndStartDateBefore(bookerId, LocalDateTime.now(), from, size);
+                return repositoryImpl.findAllByBookerIdAndEndDateAfterAndStartDateBefore(bookerId, LocalDateTime.now(clock), from, size);
             default:
                 throw new RuntimeException("unknown state");
         }
@@ -163,7 +165,7 @@ public class BookingServiceImpl implements BookingService {
 
 
     public boolean checkForComment(long userId, long itemId) {
-        if (repository.checkForComment(userId, itemId, LocalDateTime.now()) >= 1) {
+        if (repository.checkForComment(userId, itemId, LocalDateTime.now(clock)) >= 1) {
             return true;
         } else {
             throw new NotAvailableException("for comment");

@@ -22,13 +22,11 @@ public class Booking {
     private Long id;
     @Column(name = "start_date", nullable = false)
     @JsonProperty(value = "start")
-    @JsonFormat
-            (shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private LocalDateTime startDate;
     @Column(name = "end_date", nullable = false)
     @JsonProperty(value = "end")
-    @JsonFormat
-            (shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private LocalDateTime endDate;
     @ManyToOne
     @JoinColumn(name = "item_id", nullable = false)

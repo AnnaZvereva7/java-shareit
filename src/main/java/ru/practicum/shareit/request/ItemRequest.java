@@ -1,5 +1,6 @@
 package ru.practicum.shareit.request;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import ru.practicum.shareit.users.model.User;
 
@@ -27,6 +28,7 @@ public class ItemRequest {
     @JoinColumn(name = "requestor_id", nullable = false)
     private User requestor;
     @NotNull
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private LocalDateTime created;
 
 }

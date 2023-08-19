@@ -21,7 +21,7 @@ class BookingRepositoryTest {
     @Autowired
     private BookingRepository repository;
 
-    LocalDateTime now = LocalDateTime.of(2023, 8,10,12,0);
+    LocalDateTime now = LocalDateTime.of(2023, 8, 10, 12, 0);
 
     @Test
     @Sql({"/schemaTest.sql"})
@@ -36,8 +36,8 @@ class BookingRepositoryTest {
         Optional<Booking> booking = repository.findById(1L);
         assertThat(booking).isPresent();
         assertEquals(1L, booking.get().getId());
-        assertEquals(LocalDateTime.of(2023,8,9,12,0), booking.get().getStartDate());
-        assertEquals(LocalDateTime.of(2023,8,10,15,0), booking.get().getEndDate());
+        assertEquals(LocalDateTime.of(2023, 8, 9, 12, 0), booking.get().getStartDate());
+        assertEquals(LocalDateTime.of(2023, 8, 10, 15, 0), booking.get().getEndDate());
         assertEquals(4L, booking.get().getItem().getId());
         assertEquals("name4", booking.get().getItem().getName());
         assertEquals(1L, booking.get().getBooker().getId());

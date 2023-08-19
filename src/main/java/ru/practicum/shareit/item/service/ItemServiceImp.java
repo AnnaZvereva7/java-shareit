@@ -9,15 +9,15 @@ import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoWithDate;
+import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.OffsetBasedPageRequest;
 import ru.practicum.shareit.item.repositiry.CommentsRepository;
 import ru.practicum.shareit.item.repositiry.ItemRepository;
-import ru.practicum.shareit.users.UserRepository;
-import ru.practicum.shareit.users.model.User;
 import ru.practicum.shareit.users.service.UserService;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -35,11 +35,13 @@ public class ItemServiceImp implements ItemService {
     private final UserService userService;
     private final BookingRepository bookingRepository;
     private final CommentsRepository commentsRepository;
+    private final ItemMapper mapper;
+    private final Clock clock;
 
     public Item save(Item item, long ownerId) {
         userService.findById(ownerId);
-            item.setOwnerId(ownerId);
-            return repository.saveAndFlush(item);
+        item.setOwnerId(ownerId);
+        return repository.saveAndFlush(item);
     }
 
     public Item update(ItemDto itemDto, long id, long userId) {
@@ -84,11 +86,11 @@ public class ItemServiceImp implements ItemService {
                 .map(ItemDtoWithDate::getId)
                 .collect(toList());
         Map<Long, BookingDtoForOwner> lastBookings =
-                bookingRepository.findLastBookingForItem(itemsId, LocalDateTime.now())
+                bookingRepository.findLastBookingForItem(itemsId, LocalDateTime.now(clock))
                         .stream()
                         .collect(Collectors.toMap(BookingDtoForOwner::getItemId, Function.identity()));
         Map<Long, BookingDtoForOwner> nextBookings =
-                bookingRepository.findNextBookingForItems(itemsId, LocalDateTime.now())
+                bookingRepository.findNextBookingForItems(itemsId, LocalDateTime.now(clock))
                         .stream()
                         .collect(Collectors.toMap(BookingDtoForOwner::getItemId, Function.identity()));
         for (ItemDtoWithDate item : itemsDto) {
@@ -133,5 +135,12 @@ public class ItemServiceImp implements ItemService {
             item.setComments(commentsByItem.get(item.getId()));
         }
         return items;
+    }
+
+    public List<ItemDto> findByRequestId(Long requestId) {
+        return repository.findByRequestIdIn(List.of(requestId))
+                .stream()
+                .map(item -> mapper.toItemDto(item))
+                .collect(Collectors.toList());
     }
 }

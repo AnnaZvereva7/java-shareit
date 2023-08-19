@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -19,12 +20,9 @@ import java.util.List;
 @RestController
 @RequestMapping(path = "/bookings", produces = MediaType.APPLICATION_JSON_VALUE)
 @Validated
+@RequiredArgsConstructor
 public class BookingController {
     private final BookingService bookingService;
-
-    public BookingController(BookingService bookingService) {
-        this.bookingService = bookingService;
-    }
 
     @PostMapping
     Booking create(@RequestBody @Validated BookingDtoRequest bookingDto,
@@ -39,7 +37,7 @@ public class BookingController {
         if (bookingService.isUserOwner(userId, bookingId)) {
             return bookingService.approval(bookingId, approved);
         } else {
-            throw new LimitAccessException(" approval");
+            throw new LimitAccessException("approval");
         }
     }
 

@@ -5,8 +5,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.constant.Constants;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemMapper;
-import ru.practicum.shareit.item.repositiry.ItemRepository;
+import ru.practicum.shareit.item.service.ItemServiceImp;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestDtoResponse;
 import ru.practicum.shareit.request.dto.ItemRequestMapper;
@@ -16,8 +15,8 @@ import ru.practicum.shareit.users.service.UserService;
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
+import java.time.Clock;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(path = "/requests")
@@ -25,10 +24,10 @@ import java.util.stream.Collectors;
 @Validated
 public class ItemRequestController {
     private final ItemRequestMapper mapper;
-    private final ItemMapper itemMapper;
     private final UserService userService;
     private final ItemRequestService itemRequestService;
-    private final ItemRepository itemRepository;
+    private final ItemServiceImp itemService;
+    private final Clock clock;
 
     @PostMapping
     public ItemRequest save(@RequestHeader(Constants.USERID) Long userId,
@@ -58,11 +57,8 @@ public class ItemRequestController {
     public ItemRequestDtoResponse findById(@PathVariable @Positive Long requestId,
                                            @RequestHeader(Constants.USERID) Long userId) {
         userService.findById(userId);
-        List<ItemDto> items = itemRepository.findByRequestIdIn(List.of(requestId))
-                .stream()
-                .map(item -> itemMapper.toItemDto(item))
-                .collect(Collectors.toList());
-        return mapper.toDtoResponse(itemRequestService.findById(requestId), items);
+        List<ItemDto> items = itemService.findByRequestId(requestId);
+        return mapper.toDtoResponseWithItems(itemRequestService.findById(requestId), items);
     }
 
 }

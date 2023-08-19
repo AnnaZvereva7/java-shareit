@@ -9,8 +9,8 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @AllArgsConstructor
-public class BookingPeriodImpl implements BookingPeriod{
-private LocalDateTime startDate;
-private LocalDateTime endDate;
+public class BookingPeriodImpl implements BookingPeriod {
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
 
 }

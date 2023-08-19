@@ -1,11 +1,7 @@
 package ru.practicum.shareit.item.model;
 
-import org.springframework.data.domain.Sort;
-
-import java.awt.print.PageFormat;
 import org.springframework.data.domain.Pageable;
-import java.awt.print.Printable;
-import java.io.Serializable;
+import org.springframework.data.domain.Sort;
 
 public class OffsetBasedPageRequest implements Pageable {
 
@@ -69,9 +65,10 @@ public class OffsetBasedPageRequest implements Pageable {
         return new OffsetBasedPageRequest(0, getPageSize(), getSort());
     }
 
+    // This is not an entirely correct implementation, but will suffice for now.
     @Override
     public Pageable withPage(int pageNumber) {
-        return null;
+        return new OffsetBasedPageRequest(pageNumber * limit, getPageSize(), getSort());
     }
 
     @Override

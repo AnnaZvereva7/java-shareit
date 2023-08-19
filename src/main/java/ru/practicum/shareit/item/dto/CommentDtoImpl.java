@@ -11,10 +11,10 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CommentDtoImpl implements CommentDto{
- private long id;
- private long itemId;
- private String text;
- private String authorName;
- private  LocalDateTime created;
+public class CommentDtoImpl implements CommentDto {
+    private long id;
+    private long itemId;
+    private String text;
+    private String authorName;
+    private LocalDateTime created;
 }

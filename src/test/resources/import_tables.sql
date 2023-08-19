@@ -4,8 +4,9 @@ VALUES ( 'name', 'email@mail.ru'),
 ( 'name3', 'email3@mail.ru');
 
 INSERT INTO requests ( description, requestor_id, created)
-VALUES ( 'ItemDescription1', 1, '2023-08-01 11:30:00'),
-( 'ItemDescription2', 1, '2023-07-01 11:30:00');
+VALUES ( 'ItemDescription1', 2, '2023-08-01 11:30:00'),
+( 'ItemDescription2', 2, '2023-08-10 11:30:00'),
+( 'ItemDescription3', 3, '2023-07-01 11:30:00');
 
 INSERT INTO items ( name, description, is_available, owner_id, request_id)
 VALUES ( 'name', 'Description', TRUE, 1,1),
@@ -21,3 +22,8 @@ VALUES ('2023-08-09 12:00:00','2023-08-10 15:00:00',4,1,'WAITING'),
 ('2023-08-07 12:00:00','2023-08-08 12:00:00',5,1,'WAITING'),
 ('2023-08-11 12:00:00','2023-08-12 12:00:00',6,1,'WAITING'),
 ('2023-08-12 12:00:00','2023-08-13 12:00:00',4,3,'WAITING');
+
+INSERT INTO comments (text, item_id, author_id, created)
+VALUES ('text1', 1, 2, '2023-08-08 12:00:00'),
+('text2', 2, 2, '2023-08-06 12:00:00'),
+('text3', 1, 2, '2023-08-09 12:00:00');

@@ -26,5 +26,7 @@ public interface ItemService {
 
     ItemDtoWithDate getCommentsForItem(ItemDtoWithDate item);
 
-    public List<ItemDtoWithDate> getCommentsForItems(List<ItemDtoWithDate> items);
+    List<ItemDtoWithDate> getCommentsForItems(List<ItemDtoWithDate> items);
+
+    List<ItemDto> findByRequestId(Long requestId);
 }

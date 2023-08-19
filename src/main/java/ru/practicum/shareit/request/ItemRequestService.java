@@ -1,28 +1,23 @@
 package ru.practicum.shareit.request;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
+import ru.practicum.shareit.item.model.OffsetBasedPageRequest;
 import ru.practicum.shareit.item.repositiry.ItemRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDtoResponse;
 import ru.practicum.shareit.request.dto.ItemRequestMapper;
 import ru.practicum.shareit.request.repository.ItemRequestRepository;
-import ru.practicum.shareit.request.repository.ItemRequestRepositoryImpl;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ItemRequestService {
     private final ItemRequestRepository itemRequestRepository;
-    private final ItemRequestRepositoryImpl itemRequestRepositoryImpl;
     private final ItemRepository itemRepository;
     private final ItemRequestMapper mapper;
     private final ItemMapper itemMapper;
@@ -32,22 +27,22 @@ public class ItemRequestService {
     }
 
     public List<ItemRequestDtoResponse> findByUser(Long requestorId) {
-        List<ItemRequest> itemRequestsByRequestorId = itemRequestRepository.findByRequestorId(requestorId, Sort.by(Sort.Direction.DESC, "created"));
+        List<ItemRequest> itemRequestsByRequestorId = itemRequestRepository.findByRequestorId(requestorId);
         return fromItemRequestToResponse(itemRequestsByRequestorId);
     }
 
     public List<ItemRequestDtoResponse> findByRequestorIdNot(Long userId, int from, int size) {
-        return fromItemRequestToResponse(itemRequestRepositoryImpl
-                .findByRequestorIdNot(userId, from, size));
+        return fromItemRequestToResponse(itemRequestRepository
+                .findByRequestorIdNot(userId, new OffsetBasedPageRequest(from, size)));
     }
 
-    public List<ItemRequestDtoResponse> fromItemRequestToResponse(List<ItemRequest> itemRequests) {
-        if (itemRequests == null) {
+    private List<ItemRequestDtoResponse> fromItemRequestToResponse(List<ItemRequest> itemRequests) {
+        if (itemRequests.isEmpty()) {
             return List.of();
         }
         List<ItemRequestDtoResponse> requestsDto = itemRequests
                 .stream()
-                .map(itemRequest -> mapper.toDtoResponse(itemRequest))
+                .map(mapper::toDtoResponse)
                 .collect(Collectors.toList());
         List<Long> ids = requestsDto
                 .stream()
@@ -59,15 +54,20 @@ public class ItemRequestService {
                 .map(item -> itemMapper.toItemDto(item))
                 .collect(Collectors.toList());
         for (ItemDto itemDto : itemsList) {
-            if (itemsMap.containsKey(itemDto.getRequestId())) {
-                itemsMap.get(itemDto.getRequestId()).add(itemDto);
+            Long requestId = itemDto.getRequestId();
+            if (itemsMap.containsKey(requestId)) {
+                List<ItemDto> thisListItemDto = itemsMap.get(requestId);
+                thisListItemDto.add(itemDto);
+                itemsMap.put(requestId, thisListItemDto);
             } else {
-                itemsMap.put(itemDto.getRequestId(), List.of(itemDto));
+                List<ItemDto> newList = new ArrayList<>();
+                newList.add(itemDto);
+                itemsMap.put(requestId, newList);
             }
-            // itemsMap.computeIfAbsent(itemDto.getRequestId(), k -> new ArrayList<>());
         }
         for (ItemRequestDtoResponse itemRequest : requestsDto) {
-            itemRequest.setItems(itemsMap.get(itemRequest.getId()) == null ? List.of() : itemsMap.get(itemRequest.getId()));
+            List<ItemDto> thisListItemDto = itemsMap.get(itemRequest.getId());
+            itemRequest.setItems(thisListItemDto == null ? List.of() : thisListItemDto);
         }
         return requestsDto;
     }

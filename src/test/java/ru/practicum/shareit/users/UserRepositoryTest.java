@@ -12,11 +12,11 @@ import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @DataJpaTest
 @Slf4j
-    @Sql({"/schemaTest.sql", "/import_tables.sql"})
+@Sql({"/schemaTest.sql", "/import_tables.sql"})
 class UserRepositoryTest {
 
     @Autowired
@@ -45,9 +45,9 @@ class UserRepositoryTest {
 
     @Test
     void save() {
-        User newUser=userRepository.save(user4);
+        User newUser = userRepository.save(user4);
         assertThat(newUser.getId()).isEqualTo(4L);
-        user3=userRepository.save(user3);
+        user3 = userRepository.save(user3);
         assertEquals(user3.getName(), "name33");
 //        Throwable thrown = catchThrowable(() -> {
 //           userRepository.save(user5);

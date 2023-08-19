@@ -1,8 +1,6 @@
 package ru.practicum.shareit.item;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,7 +33,8 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
 class ItemControllerTest {
@@ -57,8 +56,9 @@ class ItemControllerTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private MockMvc mvc;
+
     BookingDtoForOwnerImpl bookingDtoForOwner = new BookingDtoForOwnerImpl(1L, 1L, 2L,
-            LocalDateTime.of(23, 8, 8, 12, 12),
+            LocalDateTime.of(2023, 8, 8, 12, 12),
             LocalDateTime.of(2023, 8, 10, 12, 12));
 
 
@@ -154,7 +154,7 @@ class ItemControllerTest {
         ItemDtoWithDate itemDto2 = new ItemDtoWithDate(1L, "ItemName", "ItemDescription", Boolean.TRUE, null, null, comments);
         List<ItemDtoWithDate> expectedList2 = List.of(itemDto2);
 
-        BookingDtoForOwner lastBooking = new BookingDtoForOwnerImpl(1L, 1L, 1l,
+        BookingDtoForOwner lastBooking = new BookingDtoForOwnerImpl(1L, 1L, 1L,
                 LocalDateTime.of(2023, 8, 11, 12, 30),
                 LocalDateTime.of(2023, 8, 12, 12, 20));
         ItemDtoWithDate itemDto3 = new ItemDtoWithDate(1L, "ItemName", "ItemDescription", Boolean.TRUE, lastBooking, null, comments);

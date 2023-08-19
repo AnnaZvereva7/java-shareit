@@ -15,8 +15,8 @@ import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceImpTest {
@@ -98,7 +98,7 @@ class UserServiceImpTest {
     @Test
     void findById() {
         User expectedUser = new User(1L, "name", "email@mail.ru");
-        when(repository.findById(1l)).thenReturn(Optional.of(expectedUser));
+        when(repository.findById(1L)).thenReturn(Optional.of(expectedUser));
         when(repository.findById(99L)).thenReturn(Optional.empty());
         User actualUser1 = service.findById(1L);
 
@@ -114,17 +114,17 @@ class UserServiceImpTest {
 
     @Test
     void findAll() {
-       User user= new User(1L, "name", "email@mail.ru");
-       List<User> users=List.of(user);
-       when(repository.findAll()).thenReturn(users);
-       List<User> actualUsers = service.findAll();
+        User user = new User(1L, "name", "email@mail.ru");
+        List<User> users = List.of(user);
+        when(repository.findAll()).thenReturn(users);
+        List<User> actualUsers = service.findAll();
 
-       assertEquals(1, actualUsers.size());
+        assertEquals(1, actualUsers.size());
     }
 
     @Test
     void findAll_whenEmpty() {
-        List<User> users=List.of();
+        List<User> users = List.of();
         when(repository.findAll()).thenReturn(users);
         List<User> actualUsers = service.findAll();
 
