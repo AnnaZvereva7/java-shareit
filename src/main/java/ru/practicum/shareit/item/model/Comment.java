@@ -29,4 +29,5 @@ public class Comment {
     @JoinColumn(name = "author_id", referencedColumnName = "id")
     private User author;
     private LocalDateTime created;
+
 }

@@ -11,7 +11,6 @@ import ru.practicum.shareit.booking.dto.BookingPeriodImpl;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
-import ru.practicum.shareit.booking.repository.BookingRepositoryImpl;
 import ru.practicum.shareit.exception.LimitAccessException;
 import ru.practicum.shareit.exception.NotAvailableException;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -37,8 +36,7 @@ import static org.mockito.Mockito.*;
 class BookingServiceImplTest {
     @Mock
     private BookingRepository repository;
-    @Mock
-    private BookingRepositoryImpl repositoryImpl;
+
     @Mock
     private UserService userService;
     @Mock
@@ -52,7 +50,7 @@ class BookingServiceImplTest {
         clock = Clock.fixed(
                 Instant.parse("2023-08-10T12:00:00.00Z"),
                 ZoneId.of("UTC"));
-        service = new BookingServiceImpl(repository, repositoryImpl, userService, itemService, clock);
+        service = new BookingServiceImpl(repository, userService, itemService, clock);
     }
 
     @Test
@@ -379,7 +377,7 @@ class BookingServiceImplTest {
         Booking booking1 = new Booking(1L, now.plusDays(1), now.plusDays(2), new Item(), new User(), BookingStatus.WAITING);
         Booking booking2 = new Booking(2L, now.plusDays(2), now.plusDays(3), new Item(), new User(), BookingStatus.APPROVED);
         when(userService.findById(anyLong())).thenReturn(owner);
-        when(repositoryImpl.findAllByOwnerId(1L, 0, 20)).thenReturn(List.of(booking1, booking2));
+        when(repository.findAllByOwnerId(1L, 0, 20)).thenReturn(List.of(booking1, booking2));
 
         List<Booking> actualBookings = service.findAllByOwner(1L, State.ALL, 0, 20);
 
@@ -395,7 +393,7 @@ class BookingServiceImplTest {
         Booking booking1 = new Booking(1L, now.minusDays(2), now.minusDays(1), new Item(), new User(), BookingStatus.WAITING);
         Booking booking2 = new Booking(2L, now.minusDays(4), now.minusDays(3), new Item(), new User(), BookingStatus.APPROVED);
         when(userService.findById(anyLong())).thenReturn(owner);
-        when(repositoryImpl.findPastByOwnerId(1L, now, 0, 20)).thenReturn(List.of(booking1, booking2));
+        when(repository.findPastByOwnerId(1L, now, 0, 20)).thenReturn(List.of(booking1, booking2));
 
         List<Booking> actualBookings = service.findAllByOwner(1L, State.PAST, 0, 20);
 
@@ -411,7 +409,7 @@ class BookingServiceImplTest {
         Booking booking1 = new Booking(1L, now.plusDays(1), now.plusDays(2), new Item(), new User(), BookingStatus.WAITING);
         Booking booking2 = new Booking(2L, now.plusDays(2), now.plusDays(3), new Item(), new User(), BookingStatus.WAITING);
         when(userService.findById(anyLong())).thenReturn(owner);
-        when(repositoryImpl.findByOwnerIdAndStatus(1L, BookingStatus.WAITING, 0, 20)).thenReturn(List.of(booking1, booking2));
+        when(repository.findByOwnerIdAndStatus(1L, BookingStatus.WAITING, 0, 20)).thenReturn(List.of(booking1, booking2));
 
         List<Booking> actualBookings = service.findAllByOwner(1L, State.WAITING, 0, 20);
 
@@ -427,7 +425,7 @@ class BookingServiceImplTest {
         Booking booking1 = new Booking(1L, now.plusDays(1), now.plusDays(2), new Item(), new User(), BookingStatus.REJECTED);
         Booking booking2 = new Booking(2L, now.plusDays(2), now.plusDays(3), new Item(), new User(), BookingStatus.REJECTED);
         when(userService.findById(anyLong())).thenReturn(owner);
-        when(repositoryImpl.findByOwnerIdAndStatus(1L, BookingStatus.REJECTED, 0, 20)).thenReturn(List.of(booking1, booking2));
+        when(repository.findByOwnerIdAndStatus(1L, BookingStatus.REJECTED, 0, 20)).thenReturn(List.of(booking1, booking2));
 
         List<Booking> actualBookings = service.findAllByOwner(1L, State.REJECTED, 0, 20);
 
@@ -443,7 +441,7 @@ class BookingServiceImplTest {
         Booking booking1 = new Booking(1L, now.minusDays(1), now.plusDays(2), new Item(), new User(), BookingStatus.WAITING);
         Booking booking2 = new Booking(2L, now.minusDays(2), now.plusDays(3), new Item(), new User(), BookingStatus.APPROVED);
         when(userService.findById(anyLong())).thenReturn(owner);
-        when(repositoryImpl.findCurrentByOwnerId(1L, now, 0, 20)).thenReturn(List.of(booking1, booking2));
+        when(repository.findCurrentByOwnerId(1L, now, 0, 20)).thenReturn(List.of(booking1, booking2));
 
         List<Booking> actualBookings = service.findAllByOwner(1L, State.CURRENT, 0, 20);
 
@@ -459,7 +457,7 @@ class BookingServiceImplTest {
         Booking booking1 = new Booking(1L, now.plusHours(1), now.plusDays(2), new Item(), new User(), BookingStatus.WAITING);
         Booking booking2 = new Booking(2L, now.plusDays(2), now.plusDays(3), new Item(), new User(), BookingStatus.APPROVED);
         when(userService.findById(anyLong())).thenReturn(owner);
-        when(repositoryImpl.findFutureByOwnerId(1L, now, 0, 20)).thenReturn(List.of(booking1, booking2));
+        when(repository.findFutureByOwnerId(1L, now, 0, 20)).thenReturn(List.of(booking1, booking2));
 
         List<Booking> actualBookings = service.findAllByOwner(1L, State.FUTURE, 0, 20);
 
@@ -499,7 +497,7 @@ class BookingServiceImplTest {
         Booking booking1 = new Booking(1L, now.plusDays(1), now.plusDays(2), new Item(), booker, BookingStatus.WAITING);
         Booking booking2 = new Booking(2L, now.plusDays(2), now.plusDays(3), new Item(), booker, BookingStatus.APPROVED);
         when(userService.findById(anyLong())).thenReturn(booker);
-        when(repositoryImpl.findAllByBookerId(1L, 0, 20)).thenReturn(List.of(booking1, booking2));
+        when(repository.findAllByBookerId(1L, 0, 20)).thenReturn(List.of(booking1, booking2));
 
         List<Booking> actualBookings = service.findAllByBooker(1L, State.ALL, 0, 20);
 
@@ -515,7 +513,7 @@ class BookingServiceImplTest {
         Booking booking1 = new Booking(1L, now.minusDays(2), now.minusDays(1), new Item(), booker, BookingStatus.WAITING);
         Booking booking2 = new Booking(2L, now.minusDays(4), now.minusDays(3), new Item(), booker, BookingStatus.APPROVED);
         when(userService.findById(anyLong())).thenReturn(booker);
-        when(repositoryImpl.findAllByBookerIdAndEndDateBefore(1L, now, 0, 20)).thenReturn(List.of(booking1, booking2));
+        when(repository.findAllByBookerIdAndEndDateBefore(1L, now, 0, 20)).thenReturn(List.of(booking1, booking2));
 
         List<Booking> actualBookings = service.findAllByBooker(1L, State.PAST, 0, 20);
 
@@ -531,7 +529,7 @@ class BookingServiceImplTest {
         Booking booking1 = new Booking(1L, now.plusDays(1), now.plusDays(2), new Item(), booker, BookingStatus.WAITING);
         Booking booking2 = new Booking(2L, now.plusDays(2), now.plusDays(3), new Item(), booker, BookingStatus.WAITING);
         when(userService.findById(anyLong())).thenReturn(booker);
-        when(repositoryImpl.findAllByBookerIdAndStatus(1L, BookingStatus.WAITING, 0, 20)).thenReturn(List.of(booking1, booking2));
+        when(repository.findAllByBookerIdAndStatus(1L, BookingStatus.WAITING, 0, 20)).thenReturn(List.of(booking1, booking2));
 
         List<Booking> actualBookings = service.findAllByBooker(1L, State.WAITING, 0, 20);
 
@@ -547,7 +545,7 @@ class BookingServiceImplTest {
         Booking booking1 = new Booking(1L, now.plusDays(1), now.plusDays(2), new Item(), booker, BookingStatus.REJECTED);
         Booking booking2 = new Booking(2L, now.plusDays(2), now.plusDays(3), new Item(), booker, BookingStatus.REJECTED);
         when(userService.findById(anyLong())).thenReturn(booker);
-        when(repositoryImpl.findAllByBookerIdAndStatus(1L, BookingStatus.REJECTED, 0, 20)).thenReturn(List.of(booking1, booking2));
+        when(repository.findAllByBookerIdAndStatus(1L, BookingStatus.REJECTED, 0, 20)).thenReturn(List.of(booking1, booking2));
 
         List<Booking> actualBookings = service.findAllByBooker(1L, State.REJECTED, 0, 20);
 
@@ -563,7 +561,7 @@ class BookingServiceImplTest {
         Booking booking1 = new Booking(1L, now.minusDays(1), now.plusDays(2), new Item(), booker, BookingStatus.WAITING);
         Booking booking2 = new Booking(2L, now.minusDays(2), now.plusDays(3), new Item(), booker, BookingStatus.APPROVED);
         when(userService.findById(anyLong())).thenReturn(booker);
-        when(repositoryImpl.findAllByBookerIdAndEndDateAfterAndStartDateBefore(1L, now, 0, 20)).thenReturn(List.of(booking1, booking2));
+        when(repository.findAllByBookerIdAndEndDateAfterAndStartDateBefore(1L, now, 0, 20)).thenReturn(List.of(booking1, booking2));
 
         List<Booking> actualBookings = service.findAllByBooker(1L, State.CURRENT, 0, 20);
 
@@ -579,7 +577,7 @@ class BookingServiceImplTest {
         Booking booking1 = new Booking(1L, now.plusHours(1), now.plusDays(2), new Item(), booker, BookingStatus.WAITING);
         Booking booking2 = new Booking(2L, now.plusDays(2), now.plusDays(3), new Item(), booker, BookingStatus.APPROVED);
         when(userService.findById(anyLong())).thenReturn(booker);
-        when(repositoryImpl.findAllByBookerIdAndStartDateAfter(1L, now, 0, 20)).thenReturn(List.of(booking1, booking2));
+        when(repository.findAllByBookerIdAndStartDateAfter(1L, now, 0, 20)).thenReturn(List.of(booking1, booking2));
 
         List<Booking> actualBookings = service.findAllByBooker(1L, State.FUTURE, 0, 20);
 

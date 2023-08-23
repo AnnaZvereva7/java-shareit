@@ -150,6 +150,41 @@ class BookingRepositoryTest {
 
     @Test
     @Sql({"/schemaTest.sql", "/import_tables.sql"})
+    void findLastBookingForItemTest() {
+
+        List<BookingDtoForOwner> bookingsDto = repository.findLastBookingForItem(List.of(4L), now);
+        assertEquals(1, bookingsDto.size());
+        assertEquals(1L, bookingsDto.get(0).getId());
+        assertEquals(4L, bookingsDto.get(0).getItemId());
+        assertEquals(1L, bookingsDto.get(0).getBookerId());
+        assertEquals(now.minusDays(1), bookingsDto.get(0).getStartDate());
+        assertEquals(now.plusHours(3), bookingsDto.get(0).getEndDate());
+
+        bookingsDto = repository.findLastBookingForItem(List.of(4L), now.plusDays(5));
+        assertEquals(1, bookingsDto.size());
+        assertEquals(4L, bookingsDto.get(0).getId());
+        assertEquals(4L, bookingsDto.get(0).getItemId());
+        assertEquals(3L, bookingsDto.get(0).getBookerId());
+        assertEquals(now.plusDays(2), bookingsDto.get(0).getStartDate());
+        assertEquals(now.plusDays(3), bookingsDto.get(0).getEndDate());
+
+        bookingsDto = repository.findLastBookingForItem(List.of(4L, 5L), now);
+        assertEquals(2, bookingsDto.size());
+        assertEquals(1L, bookingsDto.get(0).getId());
+        assertEquals(4L, bookingsDto.get(0).getItemId());
+        assertEquals(1L, bookingsDto.get(0).getBookerId());
+        assertEquals(now.minusDays(1), bookingsDto.get(0).getStartDate());
+        assertEquals(now.plusHours(3), bookingsDto.get(0).getEndDate());
+        assertEquals(2L, bookingsDto.get(1).getId());
+        assertEquals(5L, bookingsDto.get(1).getItemId());
+        assertEquals(1L, bookingsDto.get(1).getBookerId());
+        assertEquals(now.minusDays(3), bookingsDto.get(1).getStartDate());
+        assertEquals(now.minusDays(2), bookingsDto.get(1).getEndDate());
+
+    }
+
+    @Test
+    @Sql({"/schemaTest.sql", "/import_tables.sql"})
     void findNextBookingForItems() {
         List<BookingDtoForOwner> bookingsDto = repository.findNextBookingForItems(List.of(7L), now);
         assertEquals(0, bookingsDto.size());
@@ -194,5 +229,117 @@ class BookingRepositoryTest {
         repository.changeStatus(2L, BookingStatus.APPROVED.name());
         count = repository.checkForComment(1L, 5L, now);
         assertEquals(1, count);
+    }
+
+    @Test
+    @Sql({"/schemaTest.sql", "/import_tables.sql"})
+    void findAllByBookerId() {
+        List<Booking> bookings = repository.findAllByBookerId(4L, 0, 20);
+        assertEquals(0, bookings.size());
+
+        bookings = repository.findAllByBookerId(1L, 0, 20);
+        assertEquals(3, bookings.size());
+        assertEquals(3L, bookings.get(0).getId());
+        assertEquals(1L, bookings.get(1).getId());
+        assertEquals(2L, bookings.get(2).getId());
+    }
+
+    @Test
+    @Sql({"/schemaTest.sql", "/import_tables.sql"})
+    void findAllByBookerIdAndStatus() {
+        repository.changeStatus(1L, "APPROVED");
+        repository.changeStatus(2L, "REJECTED");
+        List<Booking> bookings = repository.findAllByBookerIdAndStatus(1L, BookingStatus.APPROVED, 0, 20);
+        assertEquals(1, bookings.size());
+        assertEquals(1L, bookings.get(0).getId());
+
+        bookings = repository.findAllByBookerIdAndStatus(1L, BookingStatus.REJECTED, 0, 20);
+        assertEquals(1, bookings.size());
+        assertEquals(2L, bookings.get(0).getId());
+    }
+
+    @Test
+    @Sql({"/schemaTest.sql", "/import_tables.sql"})
+    void findAllByBookerIdAndStartDateAfter() {
+        List<Booking> bookings = repository.findAllByBookerIdAndStartDateAfter(1L, now, 0, 20);
+        assertEquals(1, bookings.size());
+        assertEquals(3L, bookings.get(0).getId());
+
+        bookings = repository.findAllByBookerIdAndStartDateAfter(1L, now.plusDays(4), 0, 20);
+        assertEquals(0, bookings.size());
+    }
+
+    @Test
+    @Sql({"/schemaTest.sql", "/import_tables.sql"})
+    void findAllByBookerIdAndEndDateBefore() {
+        List<Booking> bookings = repository.findAllByBookerIdAndEndDateBefore(1L, now, 0, 20);
+        assertEquals(1, bookings.size());
+        assertEquals(2L, bookings.get(0).getId());
+
+        bookings = repository.findAllByBookerIdAndEndDateBefore(1L, now.plusDays(1), 1, 20);
+        assertEquals(1, bookings.size());
+        assertEquals(2L, bookings.get(0).getId());
+    }
+
+    @Test
+    @Sql({"/schemaTest.sql", "/import_tables.sql"})
+    void findAllByBookerIdAndEndDateAfterAndStartDateBefore() {
+        List<Booking> bookings = repository.findAllByBookerIdAndEndDateAfterAndStartDateBefore(1L, now, 0, 20);
+        assertEquals(1, bookings.size());
+        assertEquals(1L, bookings.get(0).getId());
+    }
+
+    @Test
+    @Sql({"/schemaTest.sql", "/import_tables.sql"})
+    void findAllByOwnerId() {
+        List<Booking> bookings = repository.findAllByOwnerId(2L, 0, 20);
+        assertEquals(3, bookings.size());
+        assertEquals(4L, bookings.get(0).getId());
+        assertEquals(1L, bookings.get(1).getId());
+        assertEquals(2L, bookings.get(2).getId());
+        bookings = repository.findAllByOwnerId(2L, 2, 20);
+        assertEquals(1, bookings.size());
+        assertEquals(2L, bookings.get(0).getId());
+    }
+
+    @Test
+    @Sql({"/schemaTest.sql", "/import_tables.sql"})
+    void findPastByOwnerId() {
+        List<Booking> bookings = repository.findPastByOwnerId(2L, now, 0, 20);
+        assertEquals(1, bookings.size());
+        assertEquals(2L, bookings.get(0).getId());
+    }
+
+    @Test
+    @Sql({"/schemaTest.sql", "/import_tables.sql"})
+    void findByOwnerIdAndStatus() {
+        repository.changeStatus(1L, "APPROVED");
+        repository.changeStatus(3L, "REJECTED");
+        List<Booking> bookings = repository.findByOwnerIdAndStatus(2L, BookingStatus.APPROVED, 0, 20);
+        assertEquals(1, bookings.size());
+        assertEquals(1L, bookings.get(0).getId());
+
+        bookings = repository.findByOwnerIdAndStatus(2L, BookingStatus.REJECTED, 0, 20);
+        assertEquals(0, bookings.size());
+
+        bookings = repository.findByOwnerIdAndStatus(3L, BookingStatus.REJECTED, 0, 20);
+        assertEquals(1, bookings.size());
+        assertEquals(3L, bookings.get(0).getId());
+    }
+
+    @Test
+    @Sql({"/schemaTest.sql", "/import_tables.sql"})
+    void findCurrentByOwnerId() {
+        List<Booking> bookings = repository.findCurrentByOwnerId(2L, now, 0, 20);
+        assertEquals(1, bookings.size());
+        assertEquals(1L, bookings.get(0).getId());
+    }
+
+    @Test
+    @Sql({"/schemaTest.sql", "/import_tables.sql"})
+    void findFutureByOwnerId() {
+        List<Booking> bookings = repository.findFutureByOwnerId(2L, now, 0, 20);
+        assertEquals(1, bookings.size());
+        assertEquals(4L, bookings.get(0).getId());
     }
 }

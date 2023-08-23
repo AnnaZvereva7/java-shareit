@@ -13,7 +13,6 @@ import ru.practicum.shareit.item.model.OffsetBasedPageRequest;
 import ru.practicum.shareit.item.repositiry.ItemRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDtoResponse;
 import ru.practicum.shareit.request.dto.ItemRequestMapper;
-import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.users.model.User;
 
 import java.time.LocalDateTime;

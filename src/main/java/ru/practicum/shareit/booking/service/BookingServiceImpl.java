@@ -9,7 +9,6 @@ import ru.practicum.shareit.booking.dto.BookingPeriod;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.repository.BookingRepository;
-import ru.practicum.shareit.booking.repository.BookingRepositoryImpl;
 import ru.practicum.shareit.exception.LimitAccessException;
 import ru.practicum.shareit.exception.NotAvailableException;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -22,13 +21,11 @@ import javax.transaction.Transactional;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository repository;
-    private final BookingRepositoryImpl repositoryImpl;
     private final UserService userService;
     private final ItemService itemService;
     private final Clock clock;
@@ -111,12 +108,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Booking findById(long bookingId) {
-        Optional<Booking> booking = repository.findById(bookingId);
-        if (booking.isEmpty()) {
-            throw new NotFoundException(Booking.class);
-        } else {
-            return booking.get();
-        }
+        return repository.findById(bookingId).orElseThrow(() -> new NotFoundException(Booking.class));
     }
 
     @Override
@@ -125,17 +117,17 @@ public class BookingServiceImpl implements BookingService {
         PageRequest pageRequest = PageRequest.of(from, size, Sort.by("startDate").descending());
         switch (state) {
             case ALL:
-                return repositoryImpl.findAllByOwnerId(ownerId, from, size);
+                return repository.findAllByOwnerId(ownerId, from, size);
             case PAST:
-                return repositoryImpl.findPastByOwnerId(ownerId, LocalDateTime.now(clock), from, size);
+                return repository.findPastByOwnerId(ownerId, LocalDateTime.now(clock), from, size);
             case WAITING:
-                return repositoryImpl.findByOwnerIdAndStatus(ownerId, BookingStatus.WAITING, from, size);
+                return repository.findByOwnerIdAndStatus(ownerId, BookingStatus.WAITING, from, size);
             case REJECTED:
-                return repositoryImpl.findByOwnerIdAndStatus(ownerId, BookingStatus.REJECTED, from, size);
+                return repository.findByOwnerIdAndStatus(ownerId, BookingStatus.REJECTED, from, size);
             case CURRENT:
-                return repositoryImpl.findCurrentByOwnerId(ownerId, LocalDateTime.now(clock), from, size);
+                return repository.findCurrentByOwnerId(ownerId, LocalDateTime.now(clock), from, size);
             case FUTURE:
-                return repositoryImpl.findFutureByOwnerId(ownerId, LocalDateTime.now(clock), from, size);
+                return repository.findFutureByOwnerId(ownerId, LocalDateTime.now(clock), from, size);
             default:
                 throw new RuntimeException("unknown state");
         }
@@ -147,17 +139,17 @@ public class BookingServiceImpl implements BookingService {
         userService.findById(bookerId);
         switch (state) {
             case ALL:
-                return repositoryImpl.findAllByBookerId(bookerId, from, size);
+                return repository.findAllByBookerId(bookerId, from, size);
             case WAITING:
-                return repositoryImpl.findAllByBookerIdAndStatus(bookerId, BookingStatus.WAITING, from, size);
+                return repository.findAllByBookerIdAndStatus(bookerId, BookingStatus.WAITING, from, size);
             case REJECTED:
-                return repositoryImpl.findAllByBookerIdAndStatus(bookerId, BookingStatus.REJECTED, from, size);
+                return repository.findAllByBookerIdAndStatus(bookerId, BookingStatus.REJECTED, from, size);
             case FUTURE:
-                return repositoryImpl.findAllByBookerIdAndStartDateAfter(bookerId, LocalDateTime.now(clock), from, size);
+                return repository.findAllByBookerIdAndStartDateAfter(bookerId, LocalDateTime.now(clock), from, size);
             case PAST:
-                return repositoryImpl.findAllByBookerIdAndEndDateBefore(bookerId, LocalDateTime.now(clock), from, size);
+                return repository.findAllByBookerIdAndEndDateBefore(bookerId, LocalDateTime.now(clock), from, size);
             case CURRENT:
-                return repositoryImpl.findAllByBookerIdAndEndDateAfterAndStartDateBefore(bookerId, LocalDateTime.now(clock), from, size);
+                return repository.findAllByBookerIdAndEndDateAfterAndStartDateBefore(bookerId, LocalDateTime.now(clock), from, size);
             default:
                 throw new RuntimeException("unknown state");
         }

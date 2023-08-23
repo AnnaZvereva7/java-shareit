@@ -9,9 +9,11 @@ import ru.practicum.shareit.item.model.OffsetBasedPageRequest;
 import ru.practicum.shareit.item.repositiry.ItemRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDtoResponse;
 import ru.practicum.shareit.request.dto.ItemRequestMapper;
-import ru.practicum.shareit.request.repository.ItemRequestRepository;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -55,15 +57,9 @@ public class ItemRequestService {
                 .collect(Collectors.toList());
         for (ItemDto itemDto : itemsList) {
             Long requestId = itemDto.getRequestId();
-            if (itemsMap.containsKey(requestId)) {
-                List<ItemDto> thisListItemDto = itemsMap.get(requestId);
-                thisListItemDto.add(itemDto);
-                itemsMap.put(requestId, thisListItemDto);
-            } else {
-                List<ItemDto> newList = new ArrayList<>();
-                newList.add(itemDto);
-                itemsMap.put(requestId, newList);
-            }
+            List<ItemDto> thisListItemDto = itemsMap.getOrDefault(requestId, new ArrayList<>());
+            thisListItemDto.add(itemDto);
+            itemsMap.put(requestId, thisListItemDto);
         }
         for (ItemRequestDtoResponse itemRequest : requestsDto) {
             List<ItemDto> thisListItemDto = itemsMap.get(itemRequest.getId());
@@ -73,11 +69,7 @@ public class ItemRequestService {
     }
 
     public ItemRequest findById(Long id) {
-        Optional<ItemRequest> itemRequest = itemRequestRepository.findById(id);
-        if (itemRequest.isEmpty()) {
-            throw new NotFoundException(ItemRequest.class);
-        }
-        return itemRequest.get();
+        return itemRequestRepository.findById(id).orElseThrow(() -> new NotFoundException(ItemRequest.class));
     }
 
 }

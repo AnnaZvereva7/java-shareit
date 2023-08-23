@@ -13,13 +13,17 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import ru.practicum.shareit.booking.dto.BookingDtoRequest;
+import ru.practicum.shareit.booking.dto.BookingDtoResponse;
+import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.booking.service.State;
 import ru.practicum.shareit.constant.Constants;
 import ru.practicum.shareit.exception.ErrorHandler;
+import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.users.dto.UserDto;
 import ru.practicum.shareit.users.model.User;
 
 import java.nio.charset.StandardCharsets;
@@ -40,6 +44,8 @@ class BookingControllerTest {
 
     @Mock
     private BookingService service;
+    @Mock
+    private BookingMapper mapper;
 
     @InjectMocks
     private BookingController bookingController;
@@ -63,9 +69,14 @@ class BookingControllerTest {
         //given
         LocalDateTime now = LocalDateTime.now();
         User booker = new User(1L, "userName", "email@mail.ru");
+        UserDto userDto = new UserDto(1L, "userName", "email@mail.ru");
         Item item = new Item(1L, "itemName", "description", true, 2L, null);
+        ItemDto itemDto = new ItemDto(1L, "itemName", "description", true, null);
         BookingDtoRequest newBooking = new BookingDtoRequest(1L, now.plusDays(1), now.plusDays(2));
-        when(service.create(any(BookingDtoRequest.class), anyLong())).thenReturn(new Booking(1L, now.plusDays(1), now.plusDays(2), item, booker, BookingStatus.WAITING));
+        Booking expectedBooking = new Booking(1L, now.plusDays(1), now.plusDays(2), item, booker, BookingStatus.WAITING);
+        BookingDtoResponse expectedBookingDto = new BookingDtoResponse(1L, now.plusDays(1), now.plusDays(2), BookingStatus.WAITING, userDto, itemDto);
+        when(service.create(any(BookingDtoRequest.class), anyLong())).thenReturn(expectedBooking);
+        when(mapper.toBookingDtoResponse(expectedBooking)).thenReturn(expectedBookingDto);
         //when
         mvc.perform(post("/bookings")
                         .content(objectMapper.writeValueAsString(newBooking))
@@ -83,7 +94,6 @@ class BookingControllerTest {
                 .andExpect(jsonPath("$.item.name", is("itemName")))
                 .andExpect(jsonPath("$.item.description", is("description")))
                 .andExpect(jsonPath("$.item.available", is(true)))
-                .andExpect(jsonPath("$.item.ownerId", is(2L), Long.class))
                 .andExpect(jsonPath("$.item.requestId", is(nullValue())))
 
                 .andExpect(jsonPath("$.booker.id", is(1L), Long.class))
@@ -129,9 +139,14 @@ class BookingControllerTest {
         //given
         LocalDateTime now = LocalDateTime.now();
         User booker = new User(1L, "userName", "email@mail.ru");
+        UserDto userDto = new UserDto(1L, "userName", "email@mail.ru");
         Item item = new Item(1L, "itemName", "description", true, 2L, null);
+        ItemDto itemDto = new ItemDto(1L, "itemName", "description", true, null);
+        Booking expectedBooking = new Booking(1L, now.plusDays(1), now.plusDays(2), item, booker, BookingStatus.APPROVED);
+        BookingDtoResponse expectedBookingDto = new BookingDtoResponse(1L, now.plusDays(1), now.plusDays(2), BookingStatus.APPROVED, userDto, itemDto);
         when(service.isUserOwner(1L, 1L)).thenReturn(true);
-        when(service.approval(1L, true)).thenReturn(new Booking(1L, now.plusDays(1), now.plusDays(2), item, booker, BookingStatus.APPROVED));
+        when(service.approval(1L, true)).thenReturn(expectedBooking);
+        when(mapper.toBookingDtoResponse(expectedBooking)).thenReturn(expectedBookingDto);
         //when
         mvc.perform(patch("/bookings/{bookingId}", 1L)
                         .header(Constants.USERID, 1L)
@@ -149,7 +164,6 @@ class BookingControllerTest {
                 .andExpect(jsonPath("$.item.name", is("itemName")))
                 .andExpect(jsonPath("$.item.description", is("description")))
                 .andExpect(jsonPath("$.item.available", is(true)))
-                .andExpect(jsonPath("$.item.ownerId", is(2L), Long.class))
                 .andExpect(jsonPath("$.item.requestId", is(nullValue())))
 
                 .andExpect(jsonPath("$.booker.id", is(1L), Long.class))
@@ -179,10 +193,16 @@ class BookingControllerTest {
         //given
         LocalDateTime now = LocalDateTime.now();
         User booker = new User(1L, "userName", "email@mail.ru");
+        UserDto userDto = new UserDto(1L, "userName", "email@mail.ru");
         Item item = new Item(1L, "itemName", "description", true, 2L, null);
+        ItemDto itemDto = new ItemDto(1L, "itemName", "description", true, null);
+        Booking expectedBooking = new Booking(1L, now.plusDays(1), now.plusDays(2), item, booker, BookingStatus.APPROVED);
+        BookingDtoResponse expectedBookingDto = new BookingDtoResponse(1L, now.plusDays(1), now.plusDays(2), BookingStatus.APPROVED, userDto, itemDto);
+
         when(service.isUserOwner(1L, 1L)).thenReturn(true);
         when(service.isUserBooker(1L, 1L)).thenReturn(false);
-        when(service.findById(1L)).thenReturn(new Booking(1L, now.plusDays(1), now.plusDays(2), item, booker, BookingStatus.APPROVED));
+        when(service.findById(1L)).thenReturn(expectedBooking);
+        when(mapper.toBookingDtoResponse(expectedBooking)).thenReturn(expectedBookingDto);
         //when
         mvc.perform(get("/bookings/{bookingId}", 1L)
                         .header(Constants.USERID, 1L)
@@ -199,7 +219,6 @@ class BookingControllerTest {
                 .andExpect(jsonPath("$.item.name", is("itemName")))
                 .andExpect(jsonPath("$.item.description", is("description")))
                 .andExpect(jsonPath("$.item.available", is(true)))
-                .andExpect(jsonPath("$.item.ownerId", is(2L), Long.class))
                 .andExpect(jsonPath("$.item.requestId", is(nullValue())))
                 .andExpect(jsonPath("$.booker.id", is(1L), Long.class))
                 .andExpect(jsonPath("$.booker.name", is("userName")))
@@ -226,6 +245,7 @@ class BookingControllerTest {
     void findAllByBooker_whenOk() throws Exception {
         //given
         when(service.findAllByBooker(anyLong(), any(State.class), anyInt(), anyInt())).thenReturn(List.of(new Booking()));
+        when(mapper.toBookingDtoResponse(new Booking())).thenReturn(new BookingDtoResponse());
         //when
         mvc.perform(get("/bookings")
                         .header(Constants.USERID, 1L)
@@ -266,6 +286,7 @@ class BookingControllerTest {
     void findAllByOwner_whenOk() throws Exception {
         //given
         when(service.findAllByOwner(anyLong(), any(State.class), anyInt(), anyInt())).thenReturn(List.of(new Booking()));
+        when(mapper.toBookingDtoResponse(new Booking())).thenReturn(new BookingDtoResponse());
         //when
         mvc.perform(get("/bookings/owner")
                         .header(Constants.USERID, 1L)

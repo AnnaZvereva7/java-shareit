@@ -6,10 +6,7 @@ import ru.practicum.shareit.booking.dto.BookingDtoForOwner;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.LimitAccessException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.item.dto.CommentDto;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemDtoWithDate;
-import ru.practicum.shareit.item.dto.ItemMapper;
+import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.OffsetBasedPageRequest;
@@ -22,7 +19,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -35,6 +31,7 @@ public class ItemServiceImp implements ItemService {
     private final UserService userService;
     private final BookingRepository bookingRepository;
     private final CommentsRepository commentsRepository;
+    private final CommentMapper commentMapper;
     private final ItemMapper mapper;
     private final Clock clock;
 
@@ -67,12 +64,7 @@ public class ItemServiceImp implements ItemService {
     }
 
     public Item findById(long id) {
-        Optional<Item> itemOptional = repository.findById(id);
-        if (itemOptional.isEmpty()) {
-            throw new NotFoundException(Item.class);
-        } else {
-            return itemOptional.get();
-        }
+        return repository.findById(id).orElseThrow(() -> new NotFoundException(Item.class));
     }
 
     public List<Item> findAllByUser(long userId, int from, int size) {
@@ -112,7 +104,10 @@ public class ItemServiceImp implements ItemService {
 
     @Override
     public ItemDtoWithDate getCommentsForItem(ItemDtoWithDate item) {
-        item.setComments(commentsRepository.findAllCommentsByItemsId(List.of(item.getId())));
+        item.setComments(commentsRepository.findAllCommentsByItemsId(List.of(item.getId()))
+                .stream()
+                .map(commentMapper::toCommentDto)
+                .collect(toList()));
         return item;
     }
 
@@ -121,13 +116,16 @@ public class ItemServiceImp implements ItemService {
         List<Long> itemsId = items.stream()
                 .map(ItemDtoWithDate::getId)
                 .collect(toList());
-        List<CommentDto> comments = commentsRepository.findAllCommentsByItemsId(itemsId);
-        Map<Long, List<CommentDto>> commentsByItem = new HashMap<>();
-        for (CommentDto comment : comments) {
+        List<CommentDtoResponse> comments = commentsRepository.findAllCommentsByItemsId(itemsId)
+                .stream()
+                .map(commentMapper::toCommentDto)
+                .collect(toList());
+        Map<Long, List<CommentDtoResponse>> commentsByItem = new HashMap<>();
+        for (CommentDtoResponse comment : comments) {
             if (commentsByItem.containsKey(comment.getItemId())) {
                 commentsByItem.get(comment.getItemId()).add(comment);
             } else {
-                List<CommentDto> newList = List.of(comment);
+                List<CommentDtoResponse> newList = List.of(comment);
                 commentsByItem.put(comment.getItemId(), newList);
             }
         }

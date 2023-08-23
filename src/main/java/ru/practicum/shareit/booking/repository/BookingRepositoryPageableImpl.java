@@ -1,6 +1,7 @@
 package ru.practicum.shareit.booking.repository;
 
 import org.springframework.stereotype.Repository;
+import ru.practicum.shareit.booking.dto.BookingDtoForOwner;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 
@@ -10,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-public class BookingRepositoryImpl {
+public class BookingRepositoryPageableImpl implements BookingRepositoryPageable {
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -127,6 +128,21 @@ public class BookingRepositoryImpl {
                 .setParameter("now", now)
                 .setFirstResult(from)
                 .setMaxResults(size)
+                .getResultList();
+    }
+
+    public List<BookingDtoForOwner> findLastBookingForItem(List<Long> itemsId, LocalDateTime now) {
+        return entityManager.createNamedQuery("lastBooking")
+                .setParameter("itemId", itemsId)
+                .setParameter("now", now)
+                .getResultList();
+    }
+
+
+    public List<BookingDtoForOwner> findNextBookingForItems(List<Long> itemsId, LocalDateTime now) {
+        return entityManager.createNamedQuery("nextBooking")
+                .setParameter("itemId", itemsId)
+                .setParameter("now", now)
                 .getResultList();
     }
 

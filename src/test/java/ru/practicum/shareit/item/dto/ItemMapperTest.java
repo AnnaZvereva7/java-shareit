@@ -1,12 +1,10 @@
 package ru.practicum.shareit.item.dto;
 
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import ru.practicum.shareit.item.model.Item;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@RequiredArgsConstructor
 class ItemMapperTest {
     private ItemMapper mapper = new ItemMapper();
 

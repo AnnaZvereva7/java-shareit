@@ -11,7 +11,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import ru.practicum.shareit.booking.dto.BookingDtoForOwner;
-import ru.practicum.shareit.booking.dto.BookingDtoForOwnerImpl;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.constant.Constants;
 import ru.practicum.shareit.exception.ErrorHandler;
@@ -27,6 +26,7 @@ import ru.practicum.shareit.users.service.UserService;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.hamcrest.Matchers.is;
@@ -57,7 +57,7 @@ class ItemControllerTest {
 
     private MockMvc mvc;
 
-    BookingDtoForOwnerImpl bookingDtoForOwner = new BookingDtoForOwnerImpl(1L, 1L, 2L,
+    BookingDtoForOwner bookingDtoForOwner = new BookingDtoForOwner(1L, 1L, 2L,
             LocalDateTime.of(2023, 8, 8, 12, 12),
             LocalDateTime.of(2023, 8, 10, 12, 12));
 
@@ -149,12 +149,12 @@ class ItemControllerTest {
         List<Item> expectedList1 = List.of(item);
         ItemDtoWithDate itemDto = new ItemDtoWithDate(1L, "ItemName", "ItemDescription", Boolean.TRUE, null, null, null);
 
-        CommentDto comment = new CommentDtoImpl(1L, 1L, "text", "authorName", LocalDateTime.of(2023, 8, 14, 11, 30));
-        List<CommentDto> comments = List.of(comment);
+        CommentDtoResponse commentDto = new CommentDtoResponse(1L, 1L, "text", 1L, "authorName", LocalDateTime.of(2023, 8, 14, 11, 30));
+        List<CommentDtoResponse> comments = List.of(commentDto);
         ItemDtoWithDate itemDto2 = new ItemDtoWithDate(1L, "ItemName", "ItemDescription", Boolean.TRUE, null, null, comments);
         List<ItemDtoWithDate> expectedList2 = List.of(itemDto2);
 
-        BookingDtoForOwner lastBooking = new BookingDtoForOwnerImpl(1L, 1L, 1L,
+        BookingDtoForOwner lastBooking = new BookingDtoForOwner(1L, 1L, 1L,
                 LocalDateTime.of(2023, 8, 11, 12, 30),
                 LocalDateTime.of(2023, 8, 12, 12, 20));
         ItemDtoWithDate itemDto3 = new ItemDtoWithDate(1L, "ItemName", "ItemDescription", Boolean.TRUE, lastBooking, null, comments);
@@ -388,7 +388,7 @@ class ItemControllerTest {
         CommentDtoRequest commentDto = new CommentDtoRequest("someText");
         Comment comment = new Comment(null, "someText", item, author, LocalDateTime.of(2023, 8, 12, 12, 20));
         Comment expectedComment = new Comment(1L, "someText", item, author, LocalDateTime.of(2023, 8, 12, 12, 20));
-        CommentDtoResponse expectedCommentDto = new CommentDtoResponse(1L, "someText", 1L, "name",
+        CommentDtoResponse expectedCommentDto = new CommentDtoResponse(1L, 1L, "someText", 1L, "name",
                 LocalDateTime.of(2023, 8, 12, 12, 20));
 
         when(userService.findById(1L)).thenReturn(author);
@@ -410,7 +410,7 @@ class ItemControllerTest {
                 .andExpect(jsonPath("$.text", is("someText")))
                 .andExpect(jsonPath("$.authorId", is(1L), Long.class))
                 .andExpect(jsonPath("$.authorName", is("name")))
-                .andExpect(jsonPath("$.created", is("12-08-2023 12:20:00")));
+                .andExpect(jsonPath("$.created", is(LocalDateTime.of(2023, 8, 12, 12, 20).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))));
     }
 
     @Test

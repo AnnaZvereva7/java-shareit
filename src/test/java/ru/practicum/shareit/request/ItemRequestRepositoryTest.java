@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.jdbc.Sql;
 import ru.practicum.shareit.item.model.OffsetBasedPageRequest;
-import ru.practicum.shareit.request.repository.ItemRequestRepository;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;

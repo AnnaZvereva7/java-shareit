@@ -68,10 +68,11 @@ class ItemRequestControllerTest {
         User user = new User(1L, "name", "email@mail.ru");
         ItemRequest itemRequest = new ItemRequest(null, "description", user, LocalDateTime.now(clock));
         ItemRequest expectedItemRequest = new ItemRequest(1L, "description", user, LocalDateTime.now(clock));
-
+        ItemRequestDtoResponse itemRequestDtoResponse = new ItemRequestDtoResponse(1L, "description", LocalDateTime.now(clock), List.of());
         when(userService.findById(1L)).thenReturn(user);
         when(mapper.fromDto(itemRequestDto, user)).thenReturn(itemRequest);
         when(service.save(itemRequest)).thenReturn(expectedItemRequest);
+        when(mapper.toDtoResponse(expectedItemRequest)).thenReturn(itemRequestDtoResponse);
         //when
         mvc.perform(post("/requests")
                         .content(objectMapper.writeValueAsString(itemRequestDto))
@@ -84,9 +85,7 @@ class ItemRequestControllerTest {
                 .andExpect(jsonPath("$.id", is(1L), Long.class))
                 .andExpect(jsonPath("$.description", is("description")))
                 .andExpect(jsonPath("$.created", is(LocalDateTime.now(clock).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))))
-                .andExpect(jsonPath("$.requestor.id", is(1L), Long.class))
-                .andExpect(jsonPath("$.requestor.name", is("name")))
-                .andExpect(jsonPath("$.requestor.email", is("email@mail.ru")));
+                .andExpect(jsonPath("$.items.size()", is(0)));
     }
 
     @Test

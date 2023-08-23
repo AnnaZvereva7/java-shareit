@@ -6,7 +6,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.shareit.booking.dto.BookingDtoForOwner;
-import ru.practicum.shareit.booking.dto.BookingDtoForOwnerImpl;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.LimitAccessException;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -43,6 +42,8 @@ class ItemServiceImpTest {
     @Mock
     private CommentsRepository commentsRepository;
     @Mock
+    private CommentMapper commentMapper;
+    @Mock
     private ItemMapper mapper;
 
     private ItemServiceImp service;
@@ -54,7 +55,7 @@ class ItemServiceImpTest {
                 Instant.parse("2023-08-14T10:15:30.00Z"),
                 ZoneId.of("UTC"));
         service = new ItemServiceImp(repository, userService,
-                bookingRepository, commentsRepository, mapper, clock);
+                bookingRepository, commentsRepository, commentMapper, mapper, clock);
     }
 
     @Test
@@ -183,9 +184,9 @@ class ItemServiceImpTest {
     @Test
     void lastNextBookingForItem() {
         ItemDtoWithDate itemDto = new ItemDtoWithDate(1L, "name1", "description1", true, null, null, null);
-        BookingDtoForOwner lastBooking1 = new BookingDtoForOwnerImpl(1L, 1L, 1L, LocalDateTime.of(2023, 8, 12, 12, 30),
+        BookingDtoForOwner lastBooking1 = new BookingDtoForOwner(1L, 1L, 1L, LocalDateTime.of(2023, 8, 12, 12, 30),
                 LocalDateTime.of(2023, 8, 13, 12, 30));
-        BookingDtoForOwner nextBooking1 = new BookingDtoForOwnerImpl(1L, 1L, 1L, LocalDateTime.of(2023, 8, 18, 12, 30),
+        BookingDtoForOwner nextBooking1 = new BookingDtoForOwner(1L, 1L, 1L, LocalDateTime.of(2023, 8, 18, 12, 30),
                 LocalDateTime.of(2023, 8, 19, 12, 30));
 
         when(bookingRepository.findLastBookingForItem(List.of(itemDto.getId()), LocalDateTime.now(clock)))
@@ -237,24 +238,29 @@ class ItemServiceImpTest {
 
     @Test
     void getCommentsForItem() {
-        CommentDto comment = new CommentDtoImpl();
+        Comment comment = new Comment();
+        CommentDtoResponse commentDto = new CommentDtoResponse();
         ItemDtoWithDate item = new ItemDtoWithDate(1L, "name1", "description1", true, null, null, null);
         when(commentsRepository.findAllCommentsByItemsId(List.of(1L))).thenReturn(List.of(comment));
+        when(commentMapper.toCommentDto(comment)).thenReturn(commentDto);
         ItemDtoWithDate actualItem = service.getCommentsForItem(item);
-        assertEquals(List.of(comment), actualItem.getComments());
+        assertEquals(List.of(commentDto), actualItem.getComments());
     }
 
     @Test
     void getCommentsForItems() {
-        CommentDto comment1 = new CommentDtoImpl(1L, 1L, "text1", "author1", LocalDateTime.of(2023, 8, 12, 11, 30));
+        Comment comment = new Comment(1L, "text1", new Item(1L, "name", "description", true, null),
+                new User(1L, "author1", "email@mail.ru"), LocalDateTime.of(2023, 8, 12, 11, 30));
+        CommentDtoResponse commentDto1 = new CommentDtoResponse(1L, 1L, "text1", 1L, "author1", LocalDateTime.of(2023, 8, 12, 11, 30));
 
         ItemDtoWithDate item1 = new ItemDtoWithDate(1L, "name1", "description1", true, null, null, null);
         ItemDtoWithDate item2 = new ItemDtoWithDate(2L, "name2", "description2", true, null, null, null);
-        when(commentsRepository.findAllCommentsByItemsId(List.of(1L, 2L))).thenReturn(List.of(comment1));
+        when(commentsRepository.findAllCommentsByItemsId(List.of(1L, 2L))).thenReturn(List.of(comment));
+        when(commentMapper.toCommentDto(comment)).thenReturn(commentDto1);
         List<ItemDtoWithDate> actualItems = service.getCommentsForItems(List.of(item1, item2));
         assertEquals(2, actualItems.size());
 
-        assertEquals(List.of(comment1), actualItems.get(0).getComments());
+        assertEquals(List.of(commentDto1), actualItems.get(0).getComments());
         assertEquals(null, actualItems.get(1).getComments());
     }
 

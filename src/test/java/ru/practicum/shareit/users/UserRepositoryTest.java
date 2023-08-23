@@ -49,11 +49,6 @@ class UserRepositoryTest {
         assertThat(newUser.getId()).isEqualTo(4L);
         user3 = userRepository.save(user3);
         assertEquals(user3.getName(), "name33");
-//        Throwable thrown = catchThrowable(() -> {
-//           userRepository.save(user5);
-//        });
-//        assertThat(thrown).isInstanceOf(ConstraintViolationException.class);
-
     }
 
     @Test

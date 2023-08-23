@@ -5,7 +5,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.constant.Constants;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.service.ItemServiceImp;
+import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestDtoResponse;
 import ru.practicum.shareit.request.dto.ItemRequestMapper;
@@ -26,15 +26,15 @@ public class ItemRequestController {
     private final ItemRequestMapper mapper;
     private final UserService userService;
     private final ItemRequestService itemRequestService;
-    private final ItemServiceImp itemService;
+    private final ItemService itemService;
     private final Clock clock;
 
     @PostMapping
-    public ItemRequest save(@RequestHeader(Constants.USERID) Long userId,
-                            @RequestBody @Valid ItemRequestDto itemRequestDto) {
+    public ItemRequestDtoResponse save(@RequestHeader(Constants.USERID) Long userId,
+                                       @RequestBody @Valid ItemRequestDto itemRequestDto) {
         User user = userService.findById(userId);
         ItemRequest itemRequest = mapper.fromDto(itemRequestDto, user);
-        return itemRequestService.save(itemRequest);
+        return mapper.toDtoResponse(itemRequestService.save(itemRequest));
     }
 
     @GetMapping

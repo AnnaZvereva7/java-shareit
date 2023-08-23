@@ -14,11 +14,11 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CommentDtoResponse {
-    private long id;
+    private Long id;
+    private Long itemId;
     private String text;
-    private long authorId;
+    private Long authorId;
     private String authorName;
-    @JsonFormat
-            (shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private LocalDateTime created;
 }
