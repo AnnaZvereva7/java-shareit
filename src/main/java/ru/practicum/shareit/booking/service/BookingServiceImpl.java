@@ -1,11 +1,14 @@
 package ru.practicum.shareit.booking.service;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingDtoRequest;
 import ru.practicum.shareit.booking.dto.BookingPeriod;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
+import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.LimitAccessException;
 import ru.practicum.shareit.exception.NotAvailableException;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -14,22 +17,18 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.users.service.UserService;
 
+import javax.transaction.Transactional;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository repository;
     private final UserService userService;
     private final ItemService itemService;
-
-
-    public BookingServiceImpl(BookingRepository repository,
-                              UserService userService, ItemService itemService) {
-        this.repository = repository;
-        this.userService = userService;
-        this.itemService = itemService;
-    }
+    private final Clock clock;
 
     @Override
     public Booking create(BookingDtoRequest bookingDto, long bookerId) {
@@ -56,7 +55,7 @@ public class BookingServiceImpl implements BookingService {
         } else {
             LocalDateTime start = bookingDto.getStart();
             LocalDateTime end = bookingDto.getEnd();
-            List<BookingPeriod> periods = repository.findAllBookingPeriodsForItemId(itemId, LocalDateTime.now());
+            List<BookingPeriod> periods = repository.findAllBookingPeriodsForItemId(itemId, LocalDateTime.now(clock));
             if (periods.isEmpty()) {
                 return true;
             }
@@ -83,7 +82,7 @@ public class BookingServiceImpl implements BookingService {
         } else {
             repository.changeStatus(bookingId, BookingStatus.REJECTED.toString());
         }
-        return repository.findById(bookingId);
+        return repository.findById(bookingId).get();
     }
 
     private boolean isStatusCorrect(long bookingId) {
@@ -109,46 +108,48 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Booking findById(long bookingId) {
-        return repository.findById(bookingId);
+        return repository.findById(bookingId).orElseThrow(() -> new NotFoundException(Booking.class));
     }
 
     @Override
-    public List<Booking> findAllByOwner(long ownerId, State state) {
+    public List<Booking> findAllByOwner(long ownerId, State state, int from, int size) {
         userService.findById(ownerId);
+        PageRequest pageRequest = PageRequest.of(from, size, Sort.by("startDate").descending());
         switch (state) {
             case ALL:
-                return repository.findAllByOwnerId(ownerId);
+                return repository.findAllByOwnerId(ownerId, from, size);
             case PAST:
-                return repository.findPastByOwnerId(ownerId, LocalDateTime.now());
+                return repository.findPastByOwnerId(ownerId, LocalDateTime.now(clock), from, size);
             case WAITING:
-                return repository.findByOwnerIdAndStatus(ownerId, BookingStatus.WAITING.name());
+                return repository.findByOwnerIdAndStatus(ownerId, BookingStatus.WAITING, from, size);
             case REJECTED:
-                return repository.findByOwnerIdAndStatus(ownerId, BookingStatus.REJECTED.name());
+                return repository.findByOwnerIdAndStatus(ownerId, BookingStatus.REJECTED, from, size);
             case CURRENT:
-                return repository.findCurrentByOwnerId(ownerId, LocalDateTime.now(), LocalDateTime.now());
+                return repository.findCurrentByOwnerId(ownerId, LocalDateTime.now(clock), from, size);
             case FUTURE:
-                return repository.findFutureByOwnerId(ownerId, LocalDateTime.now());
+                return repository.findFutureByOwnerId(ownerId, LocalDateTime.now(clock), from, size);
             default:
                 throw new RuntimeException("unknown state");
         }
     }
 
     @Override
-    public List<Booking> findAllByBooker(long bookerId, State state) {
+    @Transactional
+    public List<Booking> findAllByBooker(long bookerId, State state, int from, int size) {
         userService.findById(bookerId);
         switch (state) {
             case ALL:
-                return repository.findAllByBookerIdOrderByStartDateDesc(bookerId);
+                return repository.findAllByBookerId(bookerId, from, size);
             case WAITING:
-                return repository.findAllByBookerIdAndStatusOrderByStartDateDesc(bookerId, BookingStatus.WAITING);
+                return repository.findAllByBookerIdAndStatus(bookerId, BookingStatus.WAITING, from, size);
             case REJECTED:
-                return repository.findAllByBookerIdAndStatusOrderByStartDateDesc(bookerId, BookingStatus.REJECTED);
+                return repository.findAllByBookerIdAndStatus(bookerId, BookingStatus.REJECTED, from, size);
             case FUTURE:
-                return repository.findAllByBookerIdAndStartDateAfterOrderByStartDateDesc(bookerId, LocalDateTime.now());
+                return repository.findAllByBookerIdAndStartDateAfter(bookerId, LocalDateTime.now(clock), from, size);
             case PAST:
-                return repository.findAllByBookerIdAndEndDateBeforeOrderByStartDateDesc(bookerId, LocalDateTime.now());
+                return repository.findAllByBookerIdAndEndDateBefore(bookerId, LocalDateTime.now(clock), from, size);
             case CURRENT:
-                return repository.findAllByBookerIdAndEndDateAfterAndStartDateBeforeOrderByStartDateDesc(bookerId, LocalDateTime.now(), LocalDateTime.now());
+                return repository.findAllByBookerIdAndEndDateAfterAndStartDateBefore(bookerId, LocalDateTime.now(clock), from, size);
             default:
                 throw new RuntimeException("unknown state");
         }
@@ -156,7 +157,7 @@ public class BookingServiceImpl implements BookingService {
 
 
     public boolean checkForComment(long userId, long itemId) {
-        if (repository.checkForComment(userId, itemId, LocalDateTime.now()) >= 1) {
+        if (repository.checkForComment(userId, itemId, LocalDateTime.now(clock)) >= 1) {
             return true;
         } else {
             throw new NotAvailableException("for comment");

@@ -1,24 +1,34 @@
 package ru.practicum.shareit.request;
 
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.*;
 import ru.practicum.shareit.users.model.User;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "requests")
+@EqualsAndHashCode
 public class ItemRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private final long id;
+    @EqualsAndHashCode.Exclude
+    private Long id;
     @Column(nullable = false)
-    private final String description;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @Size(max = 256)
+    private String description;
+    @ManyToOne
     @JoinColumn(name = "requestor_id", nullable = false)
-    private final User requestor;
-
-    private final LocalDateTime created = LocalDateTime.now();
+    private User requestor;
+    @NotNull
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private LocalDateTime created;
 
 }

@@ -7,7 +7,6 @@ import ru.practicum.shareit.users.UserRepository;
 import ru.practicum.shareit.users.model.User;
 
 import java.util.List;
-import java.util.Optional;
 
 @Component
 public class UserServiceImp implements UserService {
@@ -42,12 +41,7 @@ public class UserServiceImp implements UserService {
     }
 
     public User findById(long id) {
-        Optional<User> userOptional = repository.findById(id);
-        if (userOptional.isPresent()) {
-            return userOptional.get();
-        } else {
-            throw new NotFoundException(User.class);
-        }
+        return repository.findById(id).orElseThrow(() -> new NotFoundException(User.class));
     }
 
     public List<User> findAll() {

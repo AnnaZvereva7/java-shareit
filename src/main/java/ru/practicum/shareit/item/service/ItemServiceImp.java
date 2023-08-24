@@ -1,54 +1,44 @@
 package ru.practicum.shareit.item.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingDtoForOwner;
+import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.LimitAccessException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.item.dto.CommentDto;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemDtoWithDate;
+import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.model.OffsetBasedPageRequest;
 import ru.practicum.shareit.item.repositiry.CommentsRepository;
 import ru.practicum.shareit.item.repositiry.ItemRepository;
-import ru.practicum.shareit.users.UserRepository;
-import ru.practicum.shareit.users.model.User;
+import ru.practicum.shareit.users.service.UserService;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
 @Service
+@RequiredArgsConstructor
 public class ItemServiceImp implements ItemService {
     private final ItemRepository repository;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final BookingRepository bookingRepository;
     private final CommentsRepository commentsRepository;
-
-    public ItemServiceImp(ItemRepository repository,
-                          UserRepository userRepository,
-                          BookingRepository bookingRepository,
-                          CommentsRepository commentsRepository) {
-        this.repository = repository;
-        this.userRepository = userRepository;
-        this.bookingRepository = bookingRepository;
-        this.commentsRepository = commentsRepository;
-    }
+    private final CommentMapper commentMapper;
+    private final ItemMapper mapper;
+    private final Clock clock;
 
     public Item save(Item item, long ownerId) {
-        if (userRepository.findById(ownerId).isEmpty()) {
-            throw new NotFoundException(User.class);
-        } else {
-            item.setOwnerId(ownerId);
-            return repository.saveAndFlush(item);
-        }
+        userService.findById(ownerId);
+        item.setOwnerId(ownerId);
+        return repository.saveAndFlush(item);
     }
 
     public Item update(ItemDto itemDto, long id, long userId) {
@@ -65,7 +55,7 @@ public class ItemServiceImp implements ItemService {
             }
             return repository.saveAndFlush(item);
         } else {
-            throw new LimitAccessException("to update");
+            throw new LimitAccessException("update");
         }
     }
 
@@ -74,30 +64,25 @@ public class ItemServiceImp implements ItemService {
     }
 
     public Item findById(long id) {
-        Optional<Item> itemOptional = repository.findById(id);
-        if (itemOptional.isEmpty()) {
-            throw new NotFoundException(Item.class);
-        } else {
-            return itemOptional.get();
-        }
+        return repository.findById(id).orElseThrow(() -> new NotFoundException(Item.class));
     }
 
-    public List<Item> findAllByUser(long userId) {
-        userRepository.findById(userId);
-        return repository.findByOwnerId(userId);
+    public List<Item> findAllByUser(long userId, int from, int size) {
+        userService.findById(userId);
+        return repository.findAllByOwnerId(userId, new OffsetBasedPageRequest(from, size));
     }
 
     @Override
     public List<ItemDtoWithDate> lastNextBookingForItem(List<ItemDtoWithDate> itemsDto) {
         List<Long> itemsId = itemsDto.stream()
-                .map(itemDtoWithDate -> itemDtoWithDate.getId())
+                .map(ItemDtoWithDate::getId)
                 .collect(toList());
         Map<Long, BookingDtoForOwner> lastBookings =
-                bookingRepository.findLastBookingForItem(itemsId, LocalDateTime.now())
+                bookingRepository.findLastBookingForItem(itemsId, LocalDateTime.now(clock))
                         .stream()
                         .collect(Collectors.toMap(BookingDtoForOwner::getItemId, Function.identity()));
         Map<Long, BookingDtoForOwner> nextBookings =
-                bookingRepository.findNextBookingForItems(itemsId, LocalDateTime.now())
+                bookingRepository.findNextBookingForItems(itemsId, LocalDateTime.now(clock))
                         .stream()
                         .collect(Collectors.toMap(BookingDtoForOwner::getItemId, Function.identity()));
         for (ItemDtoWithDate item : itemsDto) {
@@ -108,8 +93,8 @@ public class ItemServiceImp implements ItemService {
     }
 
     @Override
-    public List<Item> findByText(String text) {
-        return repository.findByNameOrDescriptionContainingIgnoreCaseAndAvailableTrue(text, text);
+    public List<Item> findByText(String text, int from, int size) {
+        return repository.findByTextAndAvailableTrue(text, new OffsetBasedPageRequest(from, size));
     }
 
     @Override
@@ -119,22 +104,28 @@ public class ItemServiceImp implements ItemService {
 
     @Override
     public ItemDtoWithDate getCommentsForItem(ItemDtoWithDate item) {
-        item.setComments(commentsRepository.findAllCommentsByItemsId(List.of(item.getId())));
+        item.setComments(commentsRepository.findAllCommentsByItemsId(List.of(item.getId()))
+                .stream()
+                .map(commentMapper::toCommentDto)
+                .collect(toList()));
         return item;
     }
 
     @Override
     public List<ItemDtoWithDate> getCommentsForItems(List<ItemDtoWithDate> items) {
         List<Long> itemsId = items.stream()
-                .map(itemDtoWithDate -> itemDtoWithDate.getId())
+                .map(ItemDtoWithDate::getId)
                 .collect(toList());
-        List<CommentDto> comments = commentsRepository.findAllCommentsByItemsId(itemsId);
-        Map<Long, List<CommentDto>> commentsByItem = new HashMap<>();
-        for (CommentDto comment : comments) {
+        List<CommentDtoResponse> comments = commentsRepository.findAllCommentsByItemsId(itemsId)
+                .stream()
+                .map(commentMapper::toCommentDto)
+                .collect(toList());
+        Map<Long, List<CommentDtoResponse>> commentsByItem = new HashMap<>();
+        for (CommentDtoResponse comment : comments) {
             if (commentsByItem.containsKey(comment.getItemId())) {
                 commentsByItem.get(comment.getItemId()).add(comment);
             } else {
-                List<CommentDto> newList = List.of(comment);
+                List<CommentDtoResponse> newList = List.of(comment);
                 commentsByItem.put(comment.getItemId(), newList);
             }
         }
@@ -142,5 +133,12 @@ public class ItemServiceImp implements ItemService {
             item.setComments(commentsByItem.get(item.getId()));
         }
         return items;
+    }
+
+    public List<ItemDto> findByRequestId(Long requestId) {
+        return repository.findByRequestIdIn(List.of(requestId))
+                .stream()
+                .map(item -> mapper.toItemDto(item))
+                .collect(Collectors.toList());
     }
 }

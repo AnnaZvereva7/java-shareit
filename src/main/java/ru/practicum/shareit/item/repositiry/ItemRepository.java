@@ -2,16 +2,22 @@ package ru.practicum.shareit.item.repositiry;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.model.OffsetBasedPageRequest;
 
 import java.util.List;
 
 
 public interface ItemRepository extends JpaRepository<Item, Long> {
-    @Query("select it from Item it where it.ownerId=:id order by id")
-    List<Item> findByOwnerId(@Param("id") long userId);
+    List<Item> findByRequestIdIn(List<Long> requestsId);
 
-    List<Item> findByNameOrDescriptionContainingIgnoreCaseAndAvailableTrue(String text, String text2);
+    @Query("SELECT i FROM Item i where (lower(i.name) like concat('%', :text,'%') " +
+            "or lower(i.description) like concat('%', :text,'%')) " +
+            "and i.available=TRUE ORDER BY i.id")
+    List<Item> findByTextAndAvailableTrue(String text, OffsetBasedPageRequest pageRequest);
 
+
+    @Query("SELECT i FROM Item i where i.ownerId=:userId ORDER BY i.id")
+    List<Item> findAllByOwnerId(long userId, OffsetBasedPageRequest request);
 }
+

@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,9 +14,11 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CommentDtoResponse {
-    private long id;
+    private Long id;
+    private Long itemId;
     private String text;
-    private long authorId;
+    private Long authorId;
     private String authorName;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private LocalDateTime created;
 }

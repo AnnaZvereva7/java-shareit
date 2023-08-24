@@ -1,8 +1,6 @@
 package ru.practicum.shareit.item.dto;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.constraints.NotBlank;
@@ -12,6 +10,8 @@ import javax.validation.constraints.Size;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode
 public class CommentDtoRequest {
     @NotBlank
     @Size(max = 256)
