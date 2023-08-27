@@ -6,7 +6,8 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
-import static ru.practicum.shareit.common.Marker.*;
+import static ru.practicum.shareit.common.Marker.OnCreate;
+import static ru.practicum.shareit.common.Marker.OnUpdate;
 
 @Getter
 @Setter

@@ -2,7 +2,6 @@ package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDtoRequest;
 import ru.practicum.shareit.booking.dto.BookingDtoResponse;
@@ -11,11 +10,7 @@ import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.booking.service.State;
 import ru.practicum.shareit.constant.Constants;
 import ru.practicum.shareit.exception.LimitAccessException;
-import ru.practicum.shareit.exception.WrongStatusException;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -61,11 +56,11 @@ public class BookingController {
                                              @RequestParam int from,
                                              @RequestParam int size) {
 
-            State stateEnum = State.valueOf(state);
-            return bookingService.findAllByBooker(userId, stateEnum, from, size)
-                    .stream()
-                    .map(mapper::toBookingDtoResponse)
-                    .collect(Collectors.toList());
+        State stateEnum = State.valueOf(state);
+        return bookingService.findAllByBooker(userId, stateEnum, from, size)
+                .stream()
+                .map(mapper::toBookingDtoResponse)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/owner")
@@ -74,11 +69,11 @@ public class BookingController {
                                             @RequestParam String state,
                                             @RequestParam int from,
                                             @RequestParam int size) {
-            State stateEnum = State.valueOf(state);
-            return bookingService.findAllByOwner(userId, stateEnum, from, size)
-                    .stream()
-                    .map(mapper::toBookingDtoResponse)
-                    .collect(Collectors.toList());
+        State stateEnum = State.valueOf(state);
+        return bookingService.findAllByOwner(userId, stateEnum, from, size)
+                .stream()
+                .map(mapper::toBookingDtoResponse)
+                .collect(Collectors.toList());
     }
 
 }

@@ -1,11 +1,6 @@
 package ru.practicum.shareit.users.dto;
 
 import lombok.*;
-import ru.practicum.shareit.exception.Marker;
-
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
 
 @Getter
 @Setter

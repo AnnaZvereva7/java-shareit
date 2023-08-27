@@ -12,6 +12,7 @@ import ru.practicum.shareit.client.BaseClient;
 @Service
 public class UserClient extends BaseClient {
     private static final String API_PREFIX = "/users";
+
     @Autowired
     public UserClient(@Value("${shareit-server.url}") String serverUrl, RestTemplateBuilder builder) {
         super(
@@ -22,8 +23,8 @@ public class UserClient extends BaseClient {
         );
     }
 
-    public ResponseEntity<Object> findById (long userId) {
-        return get("/"+userId);
+    public ResponseEntity<Object> findById(long userId) {
+        return get("/" + userId);
     }
 
     public ResponseEntity<Object> save(UserDto userDto) {
@@ -31,14 +32,14 @@ public class UserClient extends BaseClient {
     }
 
     public ResponseEntity<Object> update(long userId, UserDto userDto) {
-        return patch("/"+userId, userDto);
+        return patch("/" + userId, userDto);
     }
 
-    public ResponseEntity<Object> delete (long userId) {
-        return delete("/"+userId);
+    public ResponseEntity<Object> delete(long userId) {
+        return delete("/" + userId);
     }
 
-    public ResponseEntity<Object> findAll () {
+    public ResponseEntity<Object> findAll() {
         return get("");
     }
 }

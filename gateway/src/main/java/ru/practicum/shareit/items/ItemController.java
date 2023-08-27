@@ -14,9 +14,6 @@ import ru.practicum.shareit.items.dto.ItemDto;
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
-import java.util.List;
-
-import static java.util.stream.Collectors.toList;
 
 @Controller
 @RequestMapping(path = "/items")
@@ -37,7 +34,7 @@ public class ItemController {
     public ResponseEntity<Object> findAllByUser(@RequestHeader(Constants.USERID) Long userId,
                                                 @PositiveOrZero @RequestParam(defaultValue = "0") int from,
                                                 @Positive @RequestParam(defaultValue = "20") int size) {
-       log.info("Find all items with ownerId={}, from={}, size={}", userId, from, size);
+        log.info("Find all items with ownerId={}, from={}, size={}", userId, from, size);
         return itemClient.findAllByUser(userId, from, size);
     }
 
@@ -62,7 +59,7 @@ public class ItemController {
                                              @RequestHeader(Constants.USERID) Long userId,
                                              @PositiveOrZero @RequestParam(defaultValue = "0") int from,
                                              @Positive @RequestParam(defaultValue = "20") int size) {
-        log.info("Find items with text={} by user with id={}, from={}, size={}", text, userId, from,size);
+        log.info("Find items with text={} by user with id={}, from={}, size={}", text, userId, from, size);
         return itemClient.findByText(userId, text, from, size);
     }
 

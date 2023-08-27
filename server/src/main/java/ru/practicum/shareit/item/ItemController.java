@@ -14,9 +14,6 @@ import ru.practicum.shareit.request.ItemRequestService;
 import ru.practicum.shareit.users.model.User;
 import ru.practicum.shareit.users.service.UserService;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;

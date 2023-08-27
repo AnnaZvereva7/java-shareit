@@ -11,7 +11,6 @@ import ru.practicum.shareit.common.Constants;
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
-import java.util.List;
 
 @Controller
 @RequestMapping(path = "/requests")
@@ -38,7 +37,7 @@ public class ItemRequestController {
     public ResponseEntity<Object> findAllRequests(@RequestHeader(Constants.USERID) Long userId,
                                                   @PositiveOrZero @RequestParam(defaultValue = "0") int from,
                                                   @Positive @RequestParam(defaultValue = "20") int size) {
-        log.info("Find all requests when owner not with id={}, from={}, size={}", userId, from,size);
+        log.info("Find all requests when owner not with id={}, from={}, size={}", userId, from, size);
         return itemRequestClient.findAllRequests(userId, from, size);
     }
 

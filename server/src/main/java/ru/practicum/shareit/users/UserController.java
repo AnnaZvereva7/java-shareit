@@ -1,10 +1,8 @@
 package ru.practicum.shareit.users;
 
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.exception.Marker;
-import ru.practicum.shareit.users.dto.UserMapper;
 import ru.practicum.shareit.users.dto.UserDto;
+import ru.practicum.shareit.users.dto.UserMapper;
 import ru.practicum.shareit.users.service.UserService;
 
 import java.util.List;

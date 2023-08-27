@@ -28,11 +28,11 @@ public class ItemClient extends BaseClient {
     }
 
 
-    public ResponseEntity<Object> findById (long userId, long itemId) {
-        return get("/"+itemId, userId);
+    public ResponseEntity<Object> findById(long userId, long itemId) {
+        return get("/" + itemId, userId);
     }
 
-    public ResponseEntity<Object> findAllByUser (long userId, int from, int size) {
+    public ResponseEntity<Object> findAllByUser(long userId, int from, int size) {
         Map<String, Object> parameters = Map.of(
                 "from", from,
                 "size", size
@@ -40,15 +40,15 @@ public class ItemClient extends BaseClient {
         return get("?from={from}&size={size}", userId, parameters);
     }
 
-    public ResponseEntity<Object> save (long userId, ItemDto itemDto) {
+    public ResponseEntity<Object> save(long userId, ItemDto itemDto) {
         return post("", userId, itemDto);
     }
 
-    public ResponseEntity<Object> update (long itemId, long userId, ItemDto itemDto) {
-        return patch("/"+itemId, userId, itemDto);
+    public ResponseEntity<Object> update(long itemId, long userId, ItemDto itemDto) {
+        return patch("/" + itemId, userId, itemDto);
     }
 
-    public ResponseEntity<Object> findByText (long userId, String text, int from, int size) {
+    public ResponseEntity<Object> findByText(long userId, String text, int from, int size) {
         Map<String, Object> parameters = Map.of(
                 "text", text,
                 "from", from,
@@ -57,8 +57,8 @@ public class ItemClient extends BaseClient {
         return get("/search?text={text}&from={from}&size={size}", userId, parameters);
     }
 
-    public ResponseEntity<Object> addComment (long itemId, long userId, CommentDtoRequest commentDto) {
-        return post("/"+itemId+"/comment", userId, commentDto);
+    public ResponseEntity<Object> addComment(long itemId, long userId, CommentDtoRequest commentDto) {
+        return post("/" + itemId + "/comment", userId, commentDto);
     }
 
 }
