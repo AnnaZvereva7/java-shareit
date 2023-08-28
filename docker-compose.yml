@@ -16,7 +16,7 @@ services:
     depends_on:
       - db
     environment:
-      SPRING_DATASOURCE_URL: "jdbc:postgresql://db:5432/shareit?user=TestUser&password=1111"
+      SPRING_DATASOURCE_URL: "jdbc:postgresql://db:5432/shareit"
       SPRING_DB_USER: TestUser
       SPRING_DB_PASSWORD: 1111
 

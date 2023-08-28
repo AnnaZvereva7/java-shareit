@@ -4,7 +4,6 @@ import lombok.*;
 import ru.practicum.shareit.users.model.User;
 
 import javax.persistence.*;
-import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 @Getter
@@ -20,7 +19,6 @@ public class Comment {
     @EqualsAndHashCode.Exclude
     private Long id;
     @Column(nullable = false)
-    @Size(max = 256)
     private String text;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id", referencedColumnName = "id")

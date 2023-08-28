@@ -15,34 +15,15 @@ import java.util.Map;
 @Slf4j
 public class ErrorHandler {
 
-    @ExceptionHandler
+    @ExceptionHandler({ConstraintViolationException.class,
+            IllegalArgumentException.class,
+            MethodArgumentTypeMismatchException.class,
+            MethodArgumentNotValidException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> validationException(ConstraintViolationException e) {
+    public Map<String, String> validationException(RuntimeException e) {
         log.debug("Получен статус 400 Bad request {}", e.getMessage(), e);
         return Map.of("error", e.getMessage());
     }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> validationExc(MethodArgumentNotValidException e) {
-        log.debug("Получен статус 400 Bad request {}", e.getMessage(), e);
-        return Map.of("error", e.getMessage());
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> argumentMismatchException(MethodArgumentTypeMismatchException e) {
-        log.debug("Получен статус 400 Bad request {}", e.getMessage(), e);
-        return Map.of("error", e.getMessage());
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> badState(IllegalArgumentException e) {
-        log.debug("Получен статус 400 Bad request {}", e.getMessage(), e);
-        return Map.of("error", e.getMessage());
-    }
-
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

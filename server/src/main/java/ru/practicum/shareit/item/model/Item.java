@@ -3,7 +3,6 @@ package ru.practicum.shareit.item.model;
 import lombok.*;
 
 import javax.persistence.*;
-import javax.validation.constraints.Size;
 
 @Getter
 @Setter
@@ -18,9 +17,7 @@ public class Item {
     @EqualsAndHashCode.Exclude
     private Long id;
     @Column(nullable = false)
-    @Size(max = 50)
     private String name;
-    @Size(max = 256)
     private String description;
     @Column(name = "is_available", nullable = false)
     private Boolean available;

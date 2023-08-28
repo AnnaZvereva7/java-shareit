@@ -5,8 +5,6 @@ import lombok.*;
 import ru.practicum.shareit.users.model.User;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 
 @Getter
@@ -22,12 +20,10 @@ public class ItemRequest {
     @EqualsAndHashCode.Exclude
     private Long id;
     @Column(nullable = false)
-    @Size(max = 256)
     private String description;
     @ManyToOne
     @JoinColumn(name = "requestor_id", nullable = false)
     private User requestor;
-    @NotNull
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private LocalDateTime created;
 

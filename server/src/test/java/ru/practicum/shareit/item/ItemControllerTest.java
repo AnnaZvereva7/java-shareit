@@ -309,21 +309,6 @@ class ItemControllerTest {
                 .andExpect(jsonPath("$.error", is("Limit access to update")));
     }
 
-
-    @Test
-    void findByText_whenTextIsBlank() throws Exception {
-        //when
-        mvc.perform(get("/items/search")
-                        .param("text", "   ")
-                        .param("from", "0")
-                        .param("size", "20")
-                        .characterEncoding(StandardCharsets.UTF_8)
-                        .accept(MediaType.APPLICATION_JSON))
-                //then
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.size()", is(0)));
-    }
-
     @Test
     void findByText_whenOk() throws Exception {
         //given

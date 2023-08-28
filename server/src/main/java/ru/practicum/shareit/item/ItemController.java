@@ -78,14 +78,10 @@ public class ItemController {
     public List<ItemDto> findByText(@RequestParam String text,
                                     @RequestParam int from,
                                     @RequestParam int size) {
-        if (text.isBlank()) {
-            return List.of();
-        } else {
-            return itemService.findByText(text.toLowerCase(), from, size)
-                    .stream()
-                    .map(mapper::toItemDto)
-                    .collect(toList());
-        }
+        return itemService.findByText(text.toLowerCase(), from, size)
+                .stream()
+                .map(mapper::toItemDto)
+                .collect(toList());
     }
 
     @PostMapping("/{itemId}/comment")

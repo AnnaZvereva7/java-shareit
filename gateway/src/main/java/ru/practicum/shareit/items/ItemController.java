@@ -2,6 +2,7 @@ package ru.practicum.shareit.items;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
@@ -14,6 +15,7 @@ import ru.practicum.shareit.items.dto.ItemDto;
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
+import java.util.List;
 
 @Controller
 @RequestMapping(path = "/items")
@@ -55,10 +57,14 @@ public class ItemController {
 
     @GetMapping("/search")
     //pagination
-    public ResponseEntity<Object> findByText(@RequestParam(defaultValue = "") String text,
+    public ResponseEntity<Object> findByText(@RequestParam String text,
                                              @RequestHeader(Constants.USERID) Long userId,
                                              @PositiveOrZero @RequestParam(defaultValue = "0") int from,
                                              @Positive @RequestParam(defaultValue = "20") int size) {
+        if (text.isBlank()) {
+            log.info("Text is blank");
+            return ResponseEntity.status(HttpStatus.OK).body(List.of());
+        }
         log.info("Find items with text={} by user with id={}, from={}, size={}", text, userId, from, size);
         return itemClient.findByText(userId, text, from, size);
     }
